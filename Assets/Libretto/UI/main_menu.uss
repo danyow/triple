@@ -1,0 +1,59 @@
+.MainMenuButton {
+    height: 44px;
+    width: 159px;
+    background-color: rgb(103, 103, 233);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+    justify-content: center;
+    align-items: auto;
+    margin-left: 13px;
+    margin-right: 13px;
+    margin-top: 13px;
+    margin-bottom: 13px;
+}
+
+.MainMenuButton:hover {
+    height: 44px;
+    width: 159px;
+    background-color: rgb(93, 236, 55);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+    justify-content: center;
+    align-items: auto;
+    margin-left: 13px;
+    margin-right: 13px;
+    margin-top: 13px;
+    margin-bottom: 13px;
+}
+
+.MainMenuButton:active {
+    height: 44px;
+    width: 159px;
+    background-color: rgb(236, 85, 55);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+    justify-content: center;
+    align-items: auto;
+    margin-left: 13px;
+    margin-right: 13px;
+    margin-top: 13px;
+    margin-bottom: 13px;
+}
