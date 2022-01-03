@@ -9,6 +9,18 @@ UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
 UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 ```
 
+## UNITY_EMAIL
+
+添加您用于登录 _Unity_ 的电子邮件地址
+
+## UNITY_PASSWORD
+
+添加用于登录 _Unity_ 的密码
+
+## UNITY_SERIAL
+
+订阅了 _Unity Plus_ 或者 _Unity Pro_ 之后, 可以从[Unity 订阅页面](https://id.unity.com/en/subscriptions)获取密钥.
+
 ## UNITY_LICENSE
 
 1. 创建一个文件, 加入以下代码, 并放置到 `.github/workflows/getManualLicenseFile.yml`
@@ -45,4 +57,33 @@ UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
 ## GITHUB_TOKEN
 
-1. 什么都不勾选试试看
+1. 这个不需要填写, `Github Action` 文档里面的意思好像会自动填写.
+
+## ANDROID_KEYSTORE_BASE64
+
+其实也就是整个文件 _base64_ 处理
+
+### _windows_ 环境下使用[certutil](https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/certutil)
+
+1. 生成
+   `certutil -encode release.keystore release.base64`
+2. 验证
+   `certutil -decode release.base64 release_decode.keystore`
+
+### _linux_ 环境
+
+安装并直接调用 _base64_ 库即可
+
+`base64 release.keystore`
+
+## ANDROID_KEYSTORE_PASS
+
+密钥库的密码
+
+## ANDROID_KEYALIAS_NAME
+
+密钥的名称
+
+## ANDROID_KEYALIAS_PASS
+
+密钥的密码

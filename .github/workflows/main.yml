@@ -36,6 +36,9 @@ jobs:
         uses: game-ci/unity-test-runner@main
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          # UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          # UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          # UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
       - name: 更新发行说明
@@ -60,6 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        product: ["triple"]
         targetPlatform:
           - Android
           - iOS
@@ -94,37 +98,38 @@ jobs:
       - name: 构建Unity工程
         uses: game-ci/unity-builder@main
         env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          # UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          # UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          # UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
-          buildMethod: Cgs.Editor.BuildCgs.BuildOptions
+          buildMethod: Hollywood.Builder.Editor.CommandBuilder.BuildOptions
           androidAppBundle: true
-          androidKeystoreName: finoldigital.keystore
+          androidKeystoreName: release.keystore
           androidKeystoreBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
-          androidKeyaliasName: cgs
+          androidKeyaliasName: ${{ secrets.ANDROID_KEYALIAS_NAME }}
           androidKeyaliasPass: ${{ secrets.ANDROID_KEYALIAS_PASS }}
           androidTargetSdkVersion: AndroidApiLevel31
       - name: 上传构建结果
         uses: actions/upload-artifact@v2
         if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, matrix.targetPlatform) || (contains(github.event.inputs.workflow_mode, 'Steam') && matrix.targetPlatform == 'StandaloneLinux64')
         with:
-          name: cgs-${{ matrix.targetPlatform }}
+          name: ${{ matrix.product }}-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
       - name: 打包构建
         uses: montudor/action-zip@v1
         if: github.event.action == 'published' && matrix.targetPlatform == 'StandaloneLinux64'
         with:
-          args: zip -qq -r build/cgs-${{ matrix.targetPlatform }}.打包构建/${{ matrix.targetPlatform }}
+          args: zip -qq -r build/${{ matrix.product }}-${{ matrix.targetPlatform }}.zip build/${{ matrix.targetPlatform }}
       - name: 打包构建到Github页面
         uses: svenstaro/upload-release-action@v2
         if: github.event.action == 'published' && matrix.targetPlatform == 'StandaloneLinux64'
         with:
           repo_token: ${{ secrets.CGS_PAT }}
-          asset_name: cgs-${{ matrix.targetPlatform }}.zip
-          file: build/cgs-${{ matrix.targetPlatform }}.zip
+          asset_name: ${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
+          file: build/${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: ${{ github.event.release.body }}
@@ -136,6 +141,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        product: ["triple"]
         targetPlatform:
           - StandaloneWindows
           - WSAPlayer
@@ -170,27 +176,27 @@ jobs:
         with:
           build-path: build/${{ matrix.targetPlatform }}
           build-target: ${{ matrix.targetPlatform }}
-          build-method: Cgs.Editor.BuildCgs.BuildOptions
+          build-method: Hollywood.Builder.Editor.CommandBuilder.BuildOptions
           build-version: ${{ steps.versioning.outputs.version }}
       - name: 上传构建结果
         uses: actions/upload-artifact@v2
         if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, matrix.targetPlatform) || (contains(github.event.inputs.workflow_mode, 'Steam') && matrix.targetPlatform == 'StandaloneWindows64')
         with:
-          name: cgs-${{ matrix.targetPlatform }}
+          name: ${{ matrix.product }}-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
       - name: 打包构建
         uses: vimtor/action-zip@v1
         if: github.event.action == 'published' && matrix.targetPlatform != 'WSAPlayer'
         with:
           files: build/${{ matrix.targetPlatform }}/
-          dest: build/cgs-${{ matrix.targetPlatform }}.zip
+          dest: build/${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
       - name: 打包构建到Github页面
         uses: svenstaro/upload-release-action@v2
         if: github.event.action == 'published' && matrix.targetPlatform != 'WSAPlayer'
         with:
           repo_token: ${{ secrets.CGS_PAT }}
-          asset_name: cgs-${{ matrix.targetPlatform }}.zip
-          file: build/cgs-${{ matrix.targetPlatform }}.zip
+          asset_name: ${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
+          file: build/${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: ${{ github.event.release.body }}
@@ -199,6 +205,10 @@ jobs:
     name: 为 StandaloneWindows64 平台构建 🍳
     runs-on: windows-latest
     needs: buildWithWindows
+    strategy:
+      fail-fast: false
+      matrix:
+        product: ["triple"]
     if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, 'StandaloneWindows64') || contains(github.event.inputs.workflow_mode, 'Steam')
     steps:
       - name: 获取代码存储库
@@ -226,26 +236,26 @@ jobs:
         with:
           build-path: build/StandaloneWindows64
           build-target: StandaloneWindows64
-          build-method: Cgs.Editor.BuildCgs.BuildOptions
+          build-method: Hollywood.Builder.Editor.CommandBuilder.BuildOptions
           build-version: ${{ steps.versioning.outputs.version }}
       - name: 上传构建结果
         uses: actions/upload-artifact@v2
         with:
-          name: cgs-StandaloneWindows64
+          name: ${{ matrix.product }}-StandaloneWindows64
           path: build/StandaloneWindows64
       - name: 打包构建
         uses: vimtor/action-zip@v1
         if: github.event.action == 'published'
         with:
           files: build/StandaloneWindows64/
-          dest: build/cgs-StandaloneWindows64.zip
+          dest: build/${{ matrix.product }}-StandaloneWindows64.zip
       - name: 打包构建到Github页面
         uses: svenstaro/upload-release-action@v2
         if: github.event.action == 'published'
         with:
           repo_token: ${{ secrets.CGS_PAT }}
-          asset_name: cgs-StandaloneWindows64.zip
-          file: build/cgs-StandaloneWindows64.zip
+          asset_name: ${{ matrix.product }}-StandaloneWindows64.zip
+          file: build/${{ matrix.product }}-StandaloneWindows64.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: ${{ github.event.release.body }}
@@ -254,6 +264,10 @@ jobs:
     name: 发行到谷歌商店🍻
     runs-on: ubuntu-latest
     needs: buildWithLinux
+    strategy:
+      fail-fast: false
+      matrix:
+        product: ["triple"]
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Android'))
     steps:
       - name: 获取代码存储库
@@ -261,7 +275,7 @@ jobs:
       - name: Download Android Artifact
         uses: actions/download-artifact@v2
         with:
-          name: cgs-Android
+          name: ${{ matrix.product }}-Android
           path: build/Android
       - name: 更新发行说明
         if: github.event.action == 'published'
@@ -291,6 +305,10 @@ jobs:
     name: 发行到AppStore🍻
     runs-on: macos-latest
     needs: buildWithLinux
+    strategy:
+      fail-fast: false
+      matrix:
+        product: ["triple"]
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'iOS'))
     steps:
       - name: 获取代码存储库
@@ -298,7 +316,7 @@ jobs:
       - name: 下载iOS构建包
         uses: actions/download-artifact@v2
         with:
-          name: cgs-iOS
+          name: ${{ matrix.product }}-iOS
           path: build/iOS
       - name: 更新发行说明
         if: github.event.action == 'published'
@@ -347,6 +365,10 @@ jobs:
       MAC_APP_ID: com.finoldigital.CardGameSimulator
       MAC_BUILD_PATH: ${{ format('{0}/build/StandaloneOSX', github.workspace) }}
       PROJECT_NAME: Card Game Simulator
+    strategy:
+      fail-fast: false
+      matrix:
+        product: ["triple"]
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && (contains(github.event.inputs.workflow_mode, 'StandaloneOSX') || contains(github.event.inputs.workflow_mode, 'Steam')))
     steps:
       - name: 获取代码存储库
@@ -354,7 +376,7 @@ jobs:
       - name: 下载StandaloneOSX构建包
         uses: actions/download-artifact@v2
         with:
-          name: cgs-StandaloneOSX
+          name: ${{ matrix.product }}-StandaloneOSX
           path: build/StandaloneOSX
       - name: 更新发行说明
         if: github.event.action == 'published'
@@ -382,14 +404,14 @@ jobs:
         if: github.event.action == 'published'
         with:
           files: build/StandaloneOSX/
-          dest: build/cgs-StandaloneOSX.zip
+          dest: build/${{ matrix.product }}-StandaloneOSX.zip
       - name: 打包构建到Github页面
         uses: svenstaro/upload-release-action@v2
         if: github.event.action == 'published'
         with:
           repo_token: ${{ secrets.CGS_PAT }}
-          asset_name: cgs-StandaloneOSX.zip
-          file: build/cgs-StandaloneOSX.zip
+          asset_name: ${{ matrix.product }}-StandaloneOSX.zip
+          file: build/${{ matrix.product }}-StandaloneOSX.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: ${{ github.event.release.body }}
@@ -398,6 +420,10 @@ jobs:
     name: 通过GitHubPages发布到Web🍻
     runs-on: ubuntu-latest
     needs: buildWithLinux
+    strategy:
+      fail-fast: false
+      matrix:
+        product: ["triple"]
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WebGL'))
     steps:
       - name: 获取代码存储库
@@ -405,7 +431,7 @@ jobs:
       - name: 下载WebGL构建包
         uses: actions/download-artifact@v2
         with:
-          name: cgs-WebGL
+          name: ${{ matrix.product }}-WebGL
           path: build/WebGL
       - name: 将WebGL构建包复制到GitHubPages目录
         env:
@@ -423,6 +449,10 @@ jobs:
     name: 发行到MicrosoftStore🍻
     runs-on: windows-latest
     needs: buildWithWindows
+    strategy:
+      fail-fast: false
+      matrix:
+        product: ["triple"]
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WSAPlayer'))
     env:
       Wap_Project_Directory: build\WSAPlayer\Card Game Simulator
@@ -435,7 +465,7 @@ jobs:
       - name: 下载WSAPlayer构建包
         uses: actions/download-artifact@v2
         with:
-          name: cgs-WSAPlayer
+          name: ${{ matrix.product }}-WSAPlayer
           path: build/WSAPlayer
       - name: 更新发行说明
         if: github.event.action == 'published'
@@ -543,6 +573,10 @@ jobs:
         releaseToMacAppStore,
       ]
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Steam'))
+    strategy:
+      fail-fast: false
+      matrix:
+        product: ["triple"]
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -551,17 +585,17 @@ jobs:
       - name: 下载StandaloneWindows构建包
         uses: actions/download-artifact@v2
         with:
-          name: cgs-StandaloneWindows
+          name: ${{ matrix.product }}-StandaloneWindows
           path: build/StandaloneWindows
       - name: 下载StandaloneLinux64构建包
         uses: actions/download-artifact@v2
         with:
-          name: cgs-StandaloneLinux64
+          name: ${{ matrix.product }}-StandaloneLinux64
           path: build/StandaloneLinux64
       - name: 下载StandaloneWindows64构建包
         uses: actions/download-artifact@v2
         with:
-          name: cgs-StandaloneWindows64
+          name: ${{ matrix.product }}-StandaloneWindows64
           path: build/StandaloneWindows64
       - name: 下载App
         uses: actions/download-artifact@v2
@@ -602,6 +636,10 @@ jobs:
         releaseToSteam,
         releaseToMicrosoftStore,
       ]
+    strategy:
+      fail-fast: false
+      matrix:
+        product: ["triple"]
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
