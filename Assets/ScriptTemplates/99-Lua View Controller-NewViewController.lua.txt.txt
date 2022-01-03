@@ -1,0 +1,7 @@
+local #SCRIPTNAME# = class("#SCRIPTNAME#")
+
+function #SCRIPTNAME#:ctor(...) 
+
+end
+
+return #SCRIPTNAME#

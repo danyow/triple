@@ -66,5 +66,6 @@
         "**/UserSettings": true,
         "UserSettings": true
     },
-    "explorerExclude.backup": null
+    "explorerExclude.backup": null,
+    "editor.snippetSuggestions": "bottom"
 }
