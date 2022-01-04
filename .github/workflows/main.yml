@@ -46,8 +46,8 @@ jobs:
         env:
           RELEASE_NOTES: ${{ github.event.release.body }}
         run: |
-          echo "$RELEASE_NOTES" > fastlane/metadata/android/en-US/changelogs/default.txt
-          echo "$RELEASE_NOTES" > fastlane/metadata/en-US/release_notes.txt
+          echo "$RELEASE_NOTES" > fastlane/metadata/android/zh-CN/changelogs/default.txt
+          echo "$RELEASE_NOTES" > fastlane/metadata/zh-CN/release_notes.txt
       - name: 自动提交发行说明
         if: github.event.action == 'published'
         uses: stefanzweifel/git-auto-commit-action@v4
@@ -283,7 +283,7 @@ jobs:
   #       if: github.event.action == 'published'
   #       env:
   #         RELEASE_NOTES: ${{ github.event.release.body }}
-  #       run: echo "$RELEASE_NOTES" > fastlane/metadata/android/en-US/changelogs/default.txt
+  #       run: echo "$RELEASE_NOTES" > fastlane/metadata/android/zh-CN/changelogs/default.txt
   #     - name: 添加身份验证
   #       env:
   #         GOOGLE_PLAY_KEY_FILE: ${{ secrets.GOOGLE_PLAY_KEY_FILE }}
@@ -324,7 +324,7 @@ jobs:
   #       if: github.event.action == 'published'
   #       env:
   #         RELEASE_NOTES: ${{ github.event.release.body }}
-  #       run: echo "$RELEASE_NOTES" > fastlane/metadata/en-US/release_notes.txt
+  #       run: echo "$RELEASE_NOTES" > fastlane/metadata/zh-CN/release_notes.txt
   #     - name: 修复文件权限、代码签名和运行fastlane
   #       env:
   #         APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
@@ -384,7 +384,7 @@ jobs:
   #       if: github.event.action == 'published'
   #       env:
   #         RELEASE_NOTES: ${{ github.event.release.body }}
-  #       run: echo "$RELEASE_NOTES" > fastlane/metadata/en-US/release_notes.txt
+  #       run: echo "$RELEASE_NOTES" > fastlane/metadata/zh-CN/release_notes.txt
   #     - name: 修复文件权限和代码签名
   #       run: |
   #         bundle install
@@ -474,7 +474,7 @@ jobs:
   #       shell: bash
   #       env:
   #         RELEASE_NOTES: ${{ github.event.release.body }}
-  #       run: echo "$RELEASE_NOTES" > fastlane/metadata/en-US/release_notes.txt
+  #       run: echo "$RELEASE_NOTES" > fastlane/metadata/zh-CN/release_notes.txt
   #     - name: 设置Unity为IL2CPP模式
   #       uses: kuler90/setup-unity@v1
   #       with:
@@ -526,7 +526,7 @@ jobs:
   #       id: changelog
   #       shell: bash
   #       run: |
-  #         export RELEASE_NOTES="$(cat fastlane/metadata/en-US/release_notes.txt)"
+  #         export RELEASE_NOTES="$(cat fastlane/metadata/zh-CN/release_notes.txt)"
   #         RELEASE_NOTES="${RELEASE_NOTES//'%'/'%25'}"
   #         RELEASE_NOTES="${RELEASE_NOTES//$'\n'/'%0A'}"
   #         RELEASE_NOTES="${RELEASE_NOTES//$'\r'/'%0D'}"
@@ -535,7 +535,7 @@ jobs:
   #     - name: 应用发行说明
   #       uses: davidmfinol/replace-action@master
   #       with:
-  #         files: "storebroker/en-us/PDP.xml"
+  #         files: "storebroker/zh-CN/PDP.xml"
   #         replacements: "OUTPUT_RELEASE_NOTES=${{ steps.changelog.outputs.RELEASE_NOTES }}"
   #     - name: 获取版本
   #       id: versioning
