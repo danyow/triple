@@ -63,18 +63,21 @@ UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
 其实也就是整个文件 _base64_ 处理
 
-### _windows_ 环境下使用[certutil](https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/certutil)
+### ~~_windows_ 环境下使用[certutil](https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/certutil)~~ 该方法并不适用
 
-1. 生成
-   `certutil -encode release.keystore release.base64`
-2. 验证
-   `certutil -decode release.base64 release_decode.keystore`
+1. ~~生成~~
+  ~~`certutil -encode release.keystore release.base64` 只需要复制里面的内容即可~~
+2. ~~验证~~
+  ~~`certutil -decode release.base64 release_decode.keystore`~~
 
 ### _linux_ 环境
 
 安装并直接调用 _base64_ 库即可
 
-`base64 release.keystore`
+1. 生成
+  `base64 release.keystore > release.base64`
+2. 验证
+  `cat release.base64 | base64 --decode > release_comp.keystore`
 
 ## ANDROID_KEYSTORE_PASS
 
