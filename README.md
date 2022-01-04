@@ -66,18 +66,18 @@ UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 ### ~~_windows_ 环境下使用[certutil](https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/certutil)~~ 该方法并不适用
 
 1. ~~生成~~
-  ~~`certutil -encode release.keystore release.base64` 只需要复制里面的内容即可~~
+   ~~`certutil -encode release.keystore release.base64` 只需要复制里面的内容即可~~
 2. ~~验证~~
-  ~~`certutil -decode release.base64 release_decode.keystore`~~
+   ~~`certutil -decode release.base64 release_decode.keystore`~~
 
 ### _linux_ 环境
 
 安装并直接调用 _base64_ 库即可
 
 1. 生成
-  `base64 release.keystore > release.base64`
+   `base64 release.keystore > release.base64`
 2. 验证
-  `cat release.base64 | base64 --decode > release_comp.keystore`
+   `cat release.base64 | base64 --decode > release_comp.keystore`
 
 ## ANDROID_KEYSTORE_PASS
 
@@ -90,3 +90,19 @@ UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 ## ANDROID_KEYALIAS_PASS
 
 密钥的密码
+
+## GH_PERSONAL_ACCESS_TOKEN
+
+`Github` 的 **Personal access token**
+
+## UNITY_EMAIL_2
+
+## UNITY_PASSWORD_2
+
+## UNITY_AUTHENTICATOR_KEY_2
+
+1. 登录 _Unity_ 帐户
+2. 转到帐户设置
+3. 通过身份验证器应用程序激活双因素身份验证
+4. 在带有 **QR** 码的页面上，单击"无法扫描条形码？"并保存密钥（删除其中的空格）
+5. 完成激活

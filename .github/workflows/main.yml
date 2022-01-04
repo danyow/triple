@@ -69,7 +69,7 @@ jobs:
           # - iOS
           # - StandaloneOSX
           # - StandaloneLinux64
-          # - WebGL
+          - WebGL
     steps:
       - name: 为安卓释放可用磁盘空间
         if: matrix.targetPlatform == 'Android'
@@ -118,88 +118,89 @@ jobs:
         with:
           name: ${{ matrix.product }}-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
-      - name: 打包构建
+      - name: 压缩构建结果
         uses: montudor/action-zip@v1
         if: github.event.action == 'published' && matrix.targetPlatform == 'StandaloneLinux64'
         with:
           args: zip -qq -r build/${{ matrix.product }}-${{ matrix.targetPlatform }}.zip build/${{ matrix.targetPlatform }}
-      - name: 打包构建到Github页面
+      - name: 上传压缩包到Github发布页
         uses: svenstaro/upload-release-action@v2
         if: github.event.action == 'published' && matrix.targetPlatform == 'StandaloneLinux64'
         with:
-          repo_token: ${{ secrets.CGS_PAT }}
+          repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           asset_name: ${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
           file: build/${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: ${{ github.event.release.body }}
 
-  # buildWithWindows:
-  #   name: 为 ${{ matrix.targetPlatform }} 平台构建 🍳
-  #   runs-on: windows-latest
-  #   needs: tests
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       product: ["triple"]
-  #       targetPlatform:
-  #         - StandaloneWindows
-  #         - WSAPlayer
-  #   steps:
-  #     - name: 获取代码存储库
-  #       uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 0
-  #         lfs: true
-  #     - name: 获取版本
-  #       id: versioning
-  #       uses: paulhatch/semantic-version@v4.0.2
-  #       with:
-  #         format: "${major}.${minor}.${patch}"
-  #     - name: 设置Unity为IL2CPP模式
-  #       uses: kuler90/setup-unity@v1
-  #       with:
-  #         unity-modules: windows-il2cpp
-  #     - name: 设置Unity为UWP构建模式
-  #       uses: kuler90/setup-unity@v1
-  #       if: matrix.targetPlatform == 'WSAPlayer'
-  #       with:
-  #         unity-modules: universal-windows-platform
-  #     - name: 激活Unity
-  #       uses: kuler90/activate-unity@v1
-  #       with:
-  #         unity-username: ${{ secrets.UNITY_EMAIL_2 }}
-  #         unity-password: ${{ secrets.UNITY_PASSWORD_2 }}
-  #         unity-serial: ${{ secrets.UNITY_SERIAL_2 }}
-  #     - name: 构建Unity
-  #       uses: kuler90/build-unity@v1
-  #       with:
-  #         build-path: build/${{ matrix.targetPlatform }}
-  #         build-target: ${{ matrix.targetPlatform }}
-  #         build-method: Hollywood.Builder.Editor.CommandBuilder.BuildOptions
-  #         build-version: ${{ steps.versioning.outputs.version }}
-  #     - name: 上传构建结果
-  #       uses: actions/upload-artifact@v2
-  #       if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, matrix.targetPlatform) || (contains(github.event.inputs.workflow_mode, 'Steam') && matrix.targetPlatform == 'StandaloneWindows64')
-  #       with:
-  #         name: ${{ matrix.product }}-${{ matrix.targetPlatform }}
-  #         path: build/${{ matrix.targetPlatform }}
-  #     - name: 打包构建
-  #       uses: vimtor/action-zip@v1
-  #       if: github.event.action == 'published' && matrix.targetPlatform != 'WSAPlayer'
-  #       with:
-  #         files: build/${{ matrix.targetPlatform }}/
-  #         dest: build/${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
-  #     - name: 打包构建到Github页面
-  #       uses: svenstaro/upload-release-action@v2
-  #       if: github.event.action == 'published' && matrix.targetPlatform != 'WSAPlayer'
-  #       with:
-  #         repo_token: ${{ secrets.CGS_PAT }}
-  #         asset_name: ${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
-  #         file: build/${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
-  #         tag: ${{ github.ref }}
-  #         overwrite: true
-  #         body: ${{ github.event.release.body }}
+  buildWithWindows:
+    name: 为 ${{ matrix.targetPlatform }} 平台构建 🍳
+    runs-on: windows-latest
+    needs: tests
+    strategy:
+      fail-fast: false
+      matrix:
+        product: ["triple"]
+        targetPlatform:
+          - StandaloneWindows
+          - WSAPlayer
+    steps:
+      - name: 获取代码存储库
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: 获取版本
+        id: versioning
+        uses: paulhatch/semantic-version@v4.0.2
+        with:
+          format: "${major}.${minor}.${patch}"
+      - name: 设置Unity为IL2CPP模式
+        uses: kuler90/setup-unity@v1
+        with:
+          unity-modules: windows-il2cpp
+      - name: 设置Unity为UWP构建模式
+        uses: kuler90/setup-unity@v1
+        if: matrix.targetPlatform == 'WSAPlayer'
+        with:
+          unity-modules: universal-windows-platform
+      - name: 激活Unity
+        uses: kuler90/activate-unity@v1
+        with:
+          unity-username: ${{ secrets.UNITY_EMAIL_2 }}
+          unity-password: ${{ secrets.UNITY_PASSWORD_2 }}
+          unity-authenticator-key: ${{ secrets.UNITY_AUTHENTICATOR_KEY_2 }}
+          # unity-serial: ${{ secrets.UNITY_SERIAL_2 }}
+      - name: 构建Unity
+        uses: kuler90/build-unity@v1
+        with:
+          build-path: build/${{ matrix.targetPlatform }}
+          build-target: ${{ matrix.targetPlatform }}
+          build-method: Hollywood.Builder.Editor.CommandBuilder.BuildOptions
+          build-version: ${{ steps.versioning.outputs.version }}
+      - name: 上传构建结果
+        uses: actions/upload-artifact@v2
+        if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, matrix.targetPlatform) || (contains(github.event.inputs.workflow_mode, 'Steam') && matrix.targetPlatform == 'StandaloneWindows64')
+        with:
+          name: ${{ matrix.product }}-${{ matrix.targetPlatform }}
+          path: build/${{ matrix.targetPlatform }}
+      - name: 压缩构建结果
+        uses: vimtor/action-zip@v1
+        if: github.event.action == 'published' && matrix.targetPlatform != 'WSAPlayer'
+        with:
+          files: build/${{ matrix.targetPlatform }}/
+          dest: build/${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
+      - name: 上传压缩包到Github发布页
+        uses: svenstaro/upload-release-action@v2
+        if: github.event.action == 'published' && matrix.targetPlatform != 'WSAPlayer'
+        with:
+          repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          asset_name: ${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
+          file: build/${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+          body: ${{ github.event.release.body }}
 
   # buildWithWindows2:
   #   name: 为 StandaloneWindows64 平台构建 🍳
@@ -230,6 +231,7 @@ jobs:
   #       with:
   #         unity-username: ${{ secrets.UNITY_EMAIL_2 }}
   #         unity-password: ${{ secrets.UNITY_PASSWORD_2 }}
+  #         unity-authenticator-key: ${{ secrets.UNITY_AUTHENTICATOR_KEY_2 }}
   #         unity-serial: ${{ secrets.UNITY_SERIAL_2 }}
   #     - name: 构建Unity
   #       uses: kuler90/build-unity@v1
@@ -243,17 +245,17 @@ jobs:
   #       with:
   #         name: ${{ matrix.product }}-StandaloneWindows64
   #         path: build/StandaloneWindows64
-  #     - name: 打包构建
+  #     - name: 压缩构建结果
   #       uses: vimtor/action-zip@v1
   #       if: github.event.action == 'published'
   #       with:
   #         files: build/StandaloneWindows64/
   #         dest: build/${{ matrix.product }}-StandaloneWindows64.zip
-  #     - name: 打包构建到Github页面
+  #     - name: 上传压缩包到Github发布页
   #       uses: svenstaro/upload-release-action@v2
   #       if: github.event.action == 'published'
   #       with:
-  #         repo_token: ${{ secrets.CGS_PAT }}
+  #         repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
   #         asset_name: ${{ matrix.product }}-StandaloneWindows64.zip
   #         file: build/${{ matrix.product }}-StandaloneWindows64.zip
   #         tag: ${{ github.ref }}
@@ -330,7 +332,7 @@ jobs:
   #         APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
   #         APPLE_TEAM_NAME: ${{ secrets.APPLE_TEAM_NAME }}
   #         MATCH_URL: ${{ secrets.MATCH_URL }}
-  #         MATCH_PERSONAL_ACCESS_TOKEN: ${{ secrets.CGS_PAT }}
+  #         MATCH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
   #         MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
   #         APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
   #         APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
@@ -405,45 +407,45 @@ jobs:
   #       with:
   #         files: build/StandaloneOSX/
   #         dest: build/${{ matrix.product }}-StandaloneOSX.zip
-  #     - name: 打包构建到Github页面
+  #     - name: 上传压缩包到Github发布页
   #       uses: svenstaro/upload-release-action@v2
   #       if: github.event.action == 'published'
   #       with:
-  #         repo_token: ${{ secrets.CGS_PAT }}
+  #         repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
   #         asset_name: ${{ matrix.product }}-StandaloneOSX.zip
   #         file: build/${{ matrix.product }}-StandaloneOSX.zip
   #         tag: ${{ github.ref }}
   #         overwrite: true
   #         body: ${{ github.event.release.body }}
 
-  # releaseToGitHubPages:
-  #   name: 通过GitHubPages发布到Web🍻
-  #   runs-on: ubuntu-latest
-  #   needs: buildWithLinux
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       product: ["triple"]
-  #   if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WebGL'))
-  #   steps:
-  #     - name: 获取代码存储库
-  #       uses: actions/checkout@v2
-  #     - name: 下载WebGL构建包
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: ${{ matrix.product }}-WebGL
-  #         path: build/WebGL
-  #     - name: 将WebGL构建包复制到GitHubPages目录
-  #       env:
-  #         WEBGL_BUILD_PATH: ${{ format('{0}/build/WebGL', github.workspace) }}
-  #         WEBGL_PAGES_PATH: ${{ format('{0}/docs/WebGL', github.workspace) }}
-  #       run: find $WEBGL_BUILD_PATH -type f -name "**WebGL.*" -exec cp {} $WEBGL_PAGES_PATH \;
-  #     - name: 部署到GitHubPages
-  #       uses: stefanzweifel/git-auto-commit-action@v4
-  #       with:
-  #         branch: main
-  #         file_pattern: docs/**
-  #         commit_message: Deploy to GitHub Pages
+  releaseToGitHubPages:
+    name: 通过GitHubPages发布到Web🍻
+    runs-on: ubuntu-latest
+    needs: buildWithLinux
+    strategy:
+      fail-fast: false
+      matrix:
+        product: ["triple"]
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WebGL'))
+    steps:
+      - name: 获取代码存储库
+        uses: actions/checkout@v2
+      - name: 下载WebGL构建包
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.product }}-WebGL
+          path: build/WebGL
+      - name: 将WebGL构建包复制到GitHubPages目录
+        env:
+          WEBGL_BUILD_PATH: ${{ format('{0}/build/WebGL', github.workspace) }}
+          WEBGL_PAGES_PATH: ${{ format('{0}/docs/WebGL', github.workspace) }}
+        run: find $WEBGL_BUILD_PATH -type f -name "**WebGL.*" -exec cp {} $WEBGL_PAGES_PATH \;
+      - name: 部署到GitHubPages
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          branch: main
+          file_pattern: docs/**
+          commit_message: 部署到GitHubPages
 
   # releaseToMicrosoftStore:
   #   name: 发行到MicrosoftStore🍻
