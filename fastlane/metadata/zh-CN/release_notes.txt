@@ -1,1 +1,7 @@
+## What's Changed
+* Main by @danyow in https://github.com/danyow/triple/pull/1
+
+## New Contributors
+* @danyow made their first contribution in https://github.com/danyow/triple/pull/1
+
 **Full Changelog**: https://github.com/danyow/triple/commits/v1.0.0
