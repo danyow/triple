@@ -65,7 +65,7 @@ jobs:
       matrix:
         product: ["triple"]
         targetPlatform:
-          - Android
+          # - Android
           # - iOS
           # - StandaloneOSX
           # - StandaloneLinux64
@@ -144,7 +144,7 @@ jobs:
         product: ["triple"]
         targetPlatform:
           - StandaloneWindows
-          - WSAPlayer
+          # - WSAPlayer
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
