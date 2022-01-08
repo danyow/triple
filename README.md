@@ -108,7 +108,7 @@ windows_ 环境下使用[certutil](https://docs.microsoft.com/zh-cn/windows-serv
 4. 在带有 **QR** 码的页面上，单击"无法扫描条形码？"并保存密钥（删除其中的空格）
 5. 完成激活
 
-## Google Play Developer Publishing API
+## GOOGLE_PLAY_KEY_FILE
 
 获取 API 访问权限 利用 Google Play Developer Publishing API 实现应用配置自动化，并将应用版本整合到您现有的工具和流程中。
 
