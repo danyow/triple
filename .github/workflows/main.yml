@@ -16,6 +16,26 @@ on:
         description: "[release] [Android, iOS, StandaloneOSX, StandaloneLinux64, WebGL, StandaloneWindows, WSAPlayer, StandaloneWindows64, Steam]"
         required: false
         default: "release, WebGL, Android"
+      unity_environment:
+        description: "[Linux, Windows, Windows2]"
+        required: false
+        default: "Linux"
+      quality_test:
+        description: "[true, false]"
+        required: false
+        default: "false"
+      product_short:
+        description: "short产品名"
+        required: false
+        default: "triple"
+      product_full:
+        description: "全产品名"
+        required: false
+        default: "Triple Game"
+      product_trim:
+        description: "无空格产品名"
+        required: false
+        default: "TripleGame"
 
 jobs:
   tests:
@@ -33,6 +53,7 @@ jobs:
           key: Library-test-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: Library-test-
       - name: 运行单元测试
+        if: contains(github.event.inputs.quality_test, 'true')
         uses: game-ci/unity-test-runner@main
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -63,13 +84,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        product: [ "triple" ]
         targetPlatform:
           # - Android
           # - iOS
           # - StandaloneOSX
           # - StandaloneLinux64
           - WebGL
+    if: contains(github.event.inputs.unity_environment, 'Linux')
     steps:
       - name: 为安卓释放可用磁盘空间
         if: matrix.targetPlatform == 'Android'
@@ -116,20 +137,20 @@ jobs:
         uses: actions/upload-artifact@v2
         if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, matrix.targetPlatform) || (contains(github.event.inputs.workflow_mode, 'Steam') && matrix.targetPlatform == 'StandaloneLinux64')
         with:
-          name: ${{ matrix.product }}-${{ matrix.targetPlatform }}
+          name: ${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
       - name: 压缩构建结果
         uses: montudor/action-zip@v1
         if: github.event.action == 'published' && matrix.targetPlatform == 'StandaloneLinux64'
         with:
-          args: zip -qq -r build/${{ matrix.product }}-${{ matrix.targetPlatform }}.zip build/${{ matrix.targetPlatform }}
+          args: zip -qq -r build/${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}.zip build/${{ matrix.targetPlatform }}
       - name: 上传压缩包到Github发布页
         uses: svenstaro/upload-release-action@v2
         if: github.event.action == 'published' && matrix.targetPlatform == 'StandaloneLinux64'
         with:
           repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          asset_name: ${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
-          file: build/${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
+          asset_name: ${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}.zip
+          file: build/${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: ${{ github.event.release.body }}
@@ -141,10 +162,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        product: [ "triple" ]
         targetPlatform:
           - StandaloneWindows
           # - WSAPlayer
+    if: contains(github.event.inputs.unity_environment, 'Windows')
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -183,21 +204,21 @@ jobs:
         uses: actions/upload-artifact@v2
         if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, matrix.targetPlatform) || (contains(github.event.inputs.workflow_mode, 'Steam') && matrix.targetPlatform == 'StandaloneWindows64')
         with:
-          name: ${{ matrix.product }}-${{ matrix.targetPlatform }}
+          name: ${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
       - name: 压缩构建结果
         uses: vimtor/action-zip@v1
         if: github.event.action == 'published' && matrix.targetPlatform != 'WSAPlayer'
         with:
           files: build/${{ matrix.targetPlatform }}/
-          dest: build/${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
+          dest: build/${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}.zip
       - name: 上传压缩包到Github发布页
         uses: svenstaro/upload-release-action@v2
         if: github.event.action == 'published' && matrix.targetPlatform != 'WSAPlayer'
         with:
           repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          asset_name: ${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
-          file: build/${{ matrix.product }}-${{ matrix.targetPlatform }}.zip
+          asset_name: ${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}.zip
+          file: build/${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: ${{ github.event.release.body }}
@@ -206,11 +227,7 @@ jobs:
     name: 为 StandaloneWindows64 平台构建 🍳
     runs-on: windows-latest
     needs: buildWithWindows
-    strategy:
-      fail-fast: false
-      matrix:
-        product: [ "triple" ]
-    if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, 'StandaloneWindows64') || contains(github.event.inputs.workflow_mode, 'Steam')
+    if: (github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, 'StandaloneWindows64') || contains(github.event.inputs.workflow_mode, 'Steam')) && contains(github.event.inputs.unity_environment, 'Windows2')
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -243,42 +260,37 @@ jobs:
       - name: 上传构建结果
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.product }}-StandaloneWindows64
+          name: ${{ github.event.inputs.product_short }}-StandaloneWindows64
           path: build/StandaloneWindows64
       - name: 压缩构建结果
         uses: vimtor/action-zip@v1
         if: github.event.action == 'published'
         with:
           files: build/StandaloneWindows64/
-          dest: build/${{ matrix.product }}-StandaloneWindows64.zip
+          dest: build/${{ github.event.inputs.product_short }}-StandaloneWindows64.zip
       - name: 上传压缩包到Github发布页
         uses: svenstaro/upload-release-action@v2
         if: github.event.action == 'published'
         with:
           repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          asset_name: ${{ matrix.product }}-StandaloneWindows64.zip
-          file: build/${{ matrix.product }}-StandaloneWindows64.zip
+          asset_name: ${{ github.event.inputs.product_short }}-StandaloneWindows64.zip
+          file: build/${{ github.event.inputs.product_short }}-StandaloneWindows64.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: ${{ github.event.release.body }}
-  
   
   releaseToGooglePlay:
     name: 发行到谷歌商店🍻
     runs-on: ubuntu-latest
     needs: buildWithLinux
-    strategy:
-      fail-fast: false
-      matrix:
-        product: [ "triple" ]
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Android'))
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
-      - name: Download Android Artifact
+      - name: 下载安卓构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ matrix.product }}-Android
+          name: ${{ github.event.inputs.product_short }}-Android
           path: build/Android
       - name: 更新发行说明
         if: github.event.action == 'published'
@@ -299,20 +311,15 @@ jobs:
         env:
           GOOGLE_PLAY_KEY_FILE_PATH: ${{ format('{0}/fastlane/api-halfmillion.json', github.workspace) }}
           ANDROID_BUILD_FILE_PATH: ${{ format('{0}/build/Android/Android.aab', github.workspace) }}
-          ANDROID_PACKAGE_NAME: com.halfmillion.${{ matrix.product }}
+          ANDROID_PACKAGE_NAME: com.halfmillion.${{ github.event.inputs.product_short }}
         uses: maierj/fastlane-action@v2.0.1
         with:
           lane: "android playprod"
-  
   
   releaseToAppStore:
     name: 发行到AppStore🍻
     runs-on: macos-latest
     needs: buildWithLinux
-    strategy:
-      fail-fast: false
-      matrix:
-        product: [ "triple" ]
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'iOS'))
     steps:
       - name: 获取代码存储库
@@ -320,7 +327,7 @@ jobs:
       - name: 下载iOS构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ matrix.product }}-iOS
+          name: ${{ github.event.inputs.product_short }}-iOS
           path: build/iOS
       - name: 更新发行说明
         if: github.event.action == 'published'
@@ -340,14 +347,15 @@ jobs:
           APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
           APPSTORE_P8: ${{ secrets.APPSTORE_P8 }}
           USYM_UPLOAD_AUTH_TOKEN: ${{ secrets.USYM_UPLOAD_AUTH_TOKEN }}
-          IOS_APP_ID: com.halfmillion.${{ matrix.product }}
+          IOS_APP_ID: com.halfmillion.${{ github.event.inputs.product_short }}
           IOS_BUILD_PATH: ${{ format('{0}/build/iOS', github.workspace) }}
-          PROJECT_NAME: Card Game Simulator
+          PROJECT_NAME: ${{ github.event.inputs.product_full }}
         run: |
           find $IOS_BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
           find $IOS_BUILD_PATH -type f -iname "usymtool" -exec chmod +x {} \;
           bundle install
           bundle exec fastlane ios release
+  
   
   
   releaseToMacAppStore:
@@ -367,13 +375,9 @@ jobs:
       APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
       APPSTORE_P8: ${{ secrets. APPSTORE_P8 }}
       MAC_APP_BUNDLE_PATHS: Contents/PlugIns/StandaloneFileBrowser.bundle
-      MAC_APP_ID: com.halfmillion.${{ matrix.product }}
+      MAC_APP_ID: com.halfmillion.${{ github.event.inputs.product_short }}
       MAC_BUILD_PATH: ${{ format('{0}/build/StandaloneOSX', github.workspace) }}
-      PROJECT_NAME: Card Game Simulator
-    strategy:
-      fail-fast: false
-      matrix:
-        product: [ "triple" ]
+      PROJECT_NAME: ${{ github.event.inputs.product_full }}
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && (contains(github.event.inputs.workflow_mode, 'StandaloneOSX') || contains(github.event.inputs.workflow_mode, 'Steam')))
     steps:
       - name: 获取代码存储库
@@ -381,7 +385,7 @@ jobs:
       - name: 下载StandaloneOSX构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ matrix.product }}-StandaloneOSX
+          name: ${{ github.event.inputs.product_short }}-StandaloneOSX
           path: build/StandaloneOSX
       - name: 更新发行说明
         if: github.event.action == 'published'
@@ -402,34 +406,29 @@ jobs:
         uses: actions/upload-artifact@v2
         if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Steam'))
         with:
-          name: Card Game Simulator.app
-          path: build/StandaloneOSX/Card Game Simulator.app
+          name: ${{ github.event.inputs.product_full }}.app
+          path: build/StandaloneOSX/${{ github.event.inputs.product_full }}.app
       - name: 打包App
         uses: vimtor/action-zip@v1
         if: github.event.action == 'published'
         with:
           files: build/StandaloneOSX/
-          dest: build/${{ matrix.product }}-StandaloneOSX.zip
+          dest: build/${{ github.event.inputs.product_short }}-StandaloneOSX.zip
       - name: 上传压缩包到Github发布页
         uses: svenstaro/upload-release-action@v2
         if: github.event.action == 'published'
         with:
           repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          asset_name: ${{ matrix.product }}-StandaloneOSX.zip
-          file: build/${{ matrix.product }}-StandaloneOSX.zip
+          asset_name: ${{ github.event.inputs.product_short }}-StandaloneOSX.zip
+          file: build/${{ github.event.inputs.product_short }}-StandaloneOSX.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: ${{ github.event.release.body }}
-  
   
   releaseToGitHubPages:
     name: 通过GitHubPages发布到Web🍻
     runs-on: ubuntu-latest
     needs: buildWithLinux
-    strategy:
-      fail-fast: false
-      matrix:
-        product: [ "triple" ]
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WebGL'))
     steps:
       - name: 获取代码存储库
@@ -437,7 +436,7 @@ jobs:
       - name: 下载WebGL构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ matrix.product }}-WebGL
+          name: ${{ github.event.inputs.product_short }}-WebGL
           path: build/WebGL
       - name: 将WebGL构建包复制到GitHubPages目录
         env:
@@ -451,19 +450,14 @@ jobs:
           file_pattern: docs/**
           commit_message: 部署到GitHubPages
   
-  
   releaseToMicrosoftStore:
     name: 发行到MicrosoftStore🍻
     runs-on: windows-latest
     needs: buildWithWindows
-    strategy:
-      fail-fast: false
-      matrix:
-        product: [ "triple" ]
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WSAPlayer'))
     env:
-      Wap_Project_Directory: build\WSAPlayer\Card Game Simulator
-      SigningCertificate: Card Game Simulator_StoreKey.pfx
+      Wap_Project_Directory: build\WSAPlayer\${{ github.event.inputs.product_full }}
+      SigningCertificate: ${{ github.event.inputs.product_full }}_StoreKey.pfx
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -472,7 +466,7 @@ jobs:
       - name: 下载WSAPlayer构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ matrix.product }}-WSAPlayer
+          name: ${{ github.event.inputs.product_short }}-WSAPlayer
           path: build/WSAPlayer
       - name: 更新发行说明
         if: github.event.action == 'published'
@@ -494,17 +488,17 @@ jobs:
       - name: Remove spaces from project name
         uses: davidmfinol/replace-action@master
         with:
-          files: "build/WSAPlayer/Card Game Simulator.sln"
-          replacements: '"Card Game Simulator"="CardGameSimulator"'
+          files: "build/WSAPlayer/${{ github.event.inputs.product_full }}.sln"
+          replacements: '"${{ github.event.inputs.product_full }}"="${{ github.event.inputs.product_trim }}"'
       - name: 从项目名称中删除空格
         uses: davidmfinol/replace-action@master
         with:
-          files: "build/WSAPlayer/Card Game Simulator/Card Game Simulator.vcxproj"
-          replacements: "</PropertyGroup>=<ProjectName>CardGameSimulator</ProjectName></PropertyGroup>"
+          files: "build/WSAPlayer/${{ github.event.inputs.product_full }}/${{ github.event.inputs.product_full }}.vcxproj"
+          replacements: "</PropertyGroup>=<ProjectName>${{ github.event.inputs.product_trim }}</ProjectName></PropertyGroup>"
       - name: 还原Wpf应用程序以填充obj文件夹
         shell: pwsh
         env:
-          SolutionPath: build\WSAPlayer\Card Game Simulator.sln
+          SolutionPath: build\WSAPlayer\${{ github.event.inputs.product_full }}.sln
           Configuration: Master
           RuntimeIdentifier: win-x64
         run: msbuild $env:SolutionPath /t:Restore /p:Configuration=$env:Configuration /p:RuntimeIdentifier=$env:RuntimeIdentifier
@@ -518,7 +512,7 @@ jobs:
       - name: 构建.appxupload
         shell: pwsh
         env:
-          SolutionPath: build\WSAPlayer\Card Game Simulator.sln
+          SolutionPath: build\WSAPlayer\${{ github.event.inputs.product_full }}.sln
           Configuration: Master
           TargetPlatform: x64
           BuildMode: StoreUpload
@@ -557,7 +551,7 @@ jobs:
           STOREBROKER_CONFIG_PATH: ${{ format('{0}\storebroker\SBConfig.json', github.workspace) }}
           PDP_ROOT_PATH: ${{ format('{0}\storebroker\', github.workspace) }}
           IMAGES_ROOT_PATH: ${{ format('{0}\docs\assets\img\', github.workspace) }}
-          APPX_PATH: ${{ format('{0}\build\WSAPlayer\AppPackages\CardGameSimulator\CardGameSimulator_{1}.0_x64_bundle_Master.appxupload', github.workspace, steps.versioning.outputs.version) }}
+          APPX_PATH: ${{ format('{0}\build\WSAPlayer\AppPackages\${{ github.event.inputs.product_trim }}\${{ github.event.inputs.product_trim }}_{1}.0_x64_bundle_Master.appxupload', github.workspace, steps.versioning.outputs.version) }}
           OUT_PATH: ${{ format('{0}\build\WSAPlayer\', github.workspace) }}
           SUBMISSION_DATA_PATH: ${{ format('{0}\build\WSAPlayer\upload.json', github.workspace) }}
           PACKAGE_PATH: ${{ format('{0}\build\WSAPlayer\upload.zip', github.workspace) }}
@@ -568,6 +562,7 @@ jobs:
           Set-StoreBrokerAuthentication -TenantId $env:MICROSOFT_TENANT_ID -Credential $cred
           New-SubmissionPackage -ConfigPath $env:STOREBROKER_CONFIG_PATH -PDPRootPath $env:PDP_ROOT_PATH -ImagesRootPath $env:IMAGES_ROOT_PATH -AppxPath $env:APPX_PATH -OutPath $env:OUT_PATH -OutName 'upload' -Verbose
           Update-ApplicationSubmission -AppId $env:MICROSOFT_APP_ID -SubmissionDataPath $env:SUBMISSION_DATA_PATH -PackagePath $env:PACKAGE_PATH -ReplacePackages -UpdateListings -AutoCommit -Force
+  
   
   
   releaseToSteam:
@@ -581,10 +576,6 @@ jobs:
           releaseToMacAppStore,
       ]
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Steam'))
-    strategy:
-      fail-fast: false
-      matrix:
-        product: [ "triple" ]
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -593,23 +584,23 @@ jobs:
       - name: 下载StandaloneWindows构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ matrix.product }}-StandaloneWindows
+          name: ${{ github.event.inputs.product_short }}-StandaloneWindows
           path: build/StandaloneWindows
       - name: 下载StandaloneLinux64构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ matrix.product }}-StandaloneLinux64
+          name: ${{ github.event.inputs.product_short }}-StandaloneLinux64
           path: build/StandaloneLinux64
       - name: 下载StandaloneWindows64构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ matrix.product }}-StandaloneWindows64
+          name: ${{ github.event.inputs.product_short }}-StandaloneWindows64
           path: build/StandaloneWindows64
       - name: 下载App
         uses: actions/download-artifact@v2
         with:
-          name: Card Game Simulator.app
-          path: build/StandaloneOSX/Card Game Simulator.app
+          name: ${{ github.event.inputs.product_full }}.app
+          path: build/StandaloneOSX/${{ github.event.inputs.product_full }}.app
       - name: 获取版本
         id: versioning
         uses: paulhatch/semantic-version@v4.0.2
@@ -632,7 +623,6 @@ jobs:
           depot4Path: StandaloneOSX
           releaseBranch: prerelease
   
-  
   announceReleaseToSocialMedia:
     name: 宣布到社会媒体
     runs-on: ubuntu-latest
@@ -645,10 +635,6 @@ jobs:
           releaseToSteam,
           releaseToMicrosoftStore,
       ]
-    strategy:
-      fail-fast: false
-      matrix:
-        product: [ "triple" ]
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -666,7 +652,7 @@ jobs:
           VERSION: ${{ steps.versioning.outputs.version }}
           RELEASE_NOTES: ${{ github.event.release.body }}
         run: |
-          export ANNOUNCEMENT="CGS $VERSION is out for release! $RELEASE_NOTES"
+          export ANNOUNCEMENT="${{ github.event.inputs.product_short }} $VERSION is out for release! $RELEASE_NOTES"
           ANNOUNCEMENT="${ANNOUNCEMENT//'%'/'%25'}"
           ANNOUNCEMENT="${ANNOUNCEMENT//$'\n'/'%0A'}"
           ANNOUNCEMENT="${ANNOUNCEMENT//$'\r'/'%0D'}"
