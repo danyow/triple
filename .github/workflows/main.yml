@@ -15,7 +15,7 @@ on:
       workflow_mode:
         description: "[release] [Android, iOS, StandaloneOSX, StandaloneLinux64, WebGL, StandaloneWindows, WSAPlayer, StandaloneWindows64, Steam]"
         required: false
-        default: "release, WebGL"
+        default: "release, WebGL, Android"
 
 jobs:
   tests:
@@ -202,222 +202,226 @@ jobs:
           overwrite: true
           body: ${{ github.event.release.body }}
 
-  # buildWithWindows2:
-  #   name: 为 StandaloneWindows64 平台构建 🍳
-  #   runs-on: windows-latest
-  #   needs: buildWithWindows
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       product: ["triple"]
-  #   if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, 'StandaloneWindows64') || contains(github.event.inputs.workflow_mode, 'Steam')
-  #   steps:
-  #     - name: 获取代码存储库
-  #       uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 0
-  #         lfs: true
-  #     - name: 获取版本
-  #       id: versioning
-  #       uses: paulhatch/semantic-version@v4.0.2
-  #       with:
-  #         format: "${major}.${minor}.${patch}"
-  #     - name: 设置Unity为IL2CPP模式
-  #       uses: kuler90/setup-unity@v1
-  #       with:
-  #         unity-modules: windows-il2cpp
-  #     - name: 激活Unity
-  #       uses: kuler90/activate-unity@v1
-  #       with:
-  #         unity-username: ${{ secrets.UNITY_EMAIL_2 }}
-  #         unity-password: ${{ secrets.UNITY_PASSWORD_2 }}
-  #         unity-authenticator-key: ${{ secrets.UNITY_AUTHENTICATOR_KEY_2 }}
-  #         unity-serial: ${{ secrets.UNITY_SERIAL_2 }}
-  #     - name: 构建Unity
-  #       uses: kuler90/build-unity@v1
-  #       with:
-  #         build-path: build/StandaloneWindows64
-  #         build-target: StandaloneWindows64
-  #         build-method: Hollywood.Builder.Editor.CommandBuilder.BuildOptions
-  #         build-version: ${{ steps.versioning.outputs.version }}
-  #     - name: 上传构建结果
-  #       uses: actions/upload-artifact@v2
-  #       with:
-  #         name: ${{ matrix.product }}-StandaloneWindows64
-  #         path: build/StandaloneWindows64
-  #     - name: 压缩构建结果
-  #       uses: vimtor/action-zip@v1
-  #       if: github.event.action == 'published'
-  #       with:
-  #         files: build/StandaloneWindows64/
-  #         dest: build/${{ matrix.product }}-StandaloneWindows64.zip
-  #     - name: 上传压缩包到Github发布页
-  #       uses: svenstaro/upload-release-action@v2
-  #       if: github.event.action == 'published'
-  #       with:
-  #         repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-  #         asset_name: ${{ matrix.product }}-StandaloneWindows64.zip
-  #         file: build/${{ matrix.product }}-StandaloneWindows64.zip
-  #         tag: ${{ github.ref }}
-  #         overwrite: true
-  #         body: ${{ github.event.release.body }}
-
-  # releaseToGooglePlay:
-  #   name: 发行到谷歌商店🍻
-  #   runs-on: ubuntu-latest
-  #   needs: buildWithLinux
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       product: ["triple"]
-  #   if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Android'))
-  #   steps:
-  #     - name: 获取代码存储库
-  #       uses: actions/checkout@v2
-  #     - name: Download Android Artifact
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: ${{ matrix.product }}-Android
-  #         path: build/Android
-  #     - name: 更新发行说明
-  #       if: github.event.action == 'published'
-  #       env:
-  #         RELEASE_NOTES: ${{ github.event.release.body }}
-  #       run: echo "$RELEASE_NOTES" > fastlane/metadata/android/zh-CN/changelogs/default.txt
-  #     - name: 添加身份验证
-  #       env:
-  #         GOOGLE_PLAY_KEY_FILE: ${{ secrets.GOOGLE_PLAY_KEY_FILE }}
-  #         GOOGLE_PLAY_KEY_FILE_PATH: ${{ format('{0}/fastlane/api-finoldigital.json', github.workspace) }}
-  #       run: echo "$GOOGLE_PLAY_KEY_FILE" > $GOOGLE_PLAY_KEY_FILE_PATH
-  #     - name: 设置Ruby环境
-  #       uses: ruby/setup-ruby@v1
-  #       with:
-  #         ruby-version: 2.7.2
-  #         bundler-cache: true
-  #     - name: 上传到谷歌商店
-  #       env:
-  #         GOOGLE_PLAY_KEY_FILE_PATH: ${{ format('{0}/fastlane/api-finoldigital.json', github.workspace) }}
-  #         ANDROID_BUILD_FILE_PATH: ${{ format('{0}/build/Android/Android.aab', github.workspace) }}
-  #         ANDROID_PACKAGE_NAME: com.finoldigital.cardgamesim
-  #       uses: maierj/fastlane-action@v2.0.1
-  #       with:
-  #         lane: "android playprod"
-
-  # releaseToAppStore:
-  #   name: 发行到AppStore🍻
-  #   runs-on: macos-latest
-  #   needs: buildWithLinux
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       product: ["triple"]
-  #   if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'iOS'))
-  #   steps:
-  #     - name: 获取代码存储库
-  #       uses: actions/checkout@v2
-  #     - name: 下载iOS构建包
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: ${{ matrix.product }}-iOS
-  #         path: build/iOS
-  #     - name: 更新发行说明
-  #       if: github.event.action == 'published'
-  #       env:
-  #         RELEASE_NOTES: ${{ github.event.release.body }}
-  #       run: echo "$RELEASE_NOTES" > fastlane/metadata/zh-CN/release_notes.txt
-  #     - name: 修复文件权限、代码签名和运行fastlane
-  #       env:
-  #         APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
-  #         APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
-  #         APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-  #         APPLE_TEAM_NAME: ${{ secrets.APPLE_TEAM_NAME }}
-  #         MATCH_URL: ${{ secrets.MATCH_URL }}
-  #         MATCH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-  #         MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-  #         APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-  #         APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-  #         APPSTORE_P8: ${{ secrets.APPSTORE_P8 }}
-  #         USYM_UPLOAD_AUTH_TOKEN: ${{ secrets.USYM_UPLOAD_AUTH_TOKEN }}
-  #         IOS_APP_ID: com.finoldigital.CardGameSim
-  #         IOS_BUILD_PATH: ${{ format('{0}/build/iOS', github.workspace) }}
-  #         PROJECT_NAME: Card Game Simulator
-  #       run: |
-  #         find $IOS_BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
-  #         find $IOS_BUILD_PATH -type f -iname "usymtool" -exec chmod +x {} \;
-  #         bundle install
-  #         bundle exec fastlane ios release
-
-  # releaseToMacAppStore:
-  #   name: 发行到MacAppStore🍻
-  #   runs-on: macos-latest
-  #   needs: buildWithLinux
-  #   env:
-  #     APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
-  #     APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
-  #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-  #     APPLE_TEAM_NAME: ${{ secrets.APPLE_TEAM_NAME }}
-  #     APPLE_DISTRIBUTION_CERTIFICATE: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE }}
-  #     APPLE_DISTRIBUTION_PASSWORD: ${{ secrets.APPLE_DISTRIBUTION_PASSWORD }}
-  #     MAC_INSTALLER_CERTIFICATE: ${{ secrets.MAC_INSTALLER_CERTIFICATE }}
-  #     MAC_INSTALLER_PASSWORD: ${{ secrets.MAC_INSTALLER_PASSWORD }}
-  #     APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-  #     APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-  #     APPSTORE_P8: ${{ secrets. APPSTORE_P8 }}
-  #     MAC_APP_BUNDLE_PATHS: Contents/PlugIns/StandaloneFileBrowser.bundle
-  #     MAC_APP_ID: com.finoldigital.CardGameSimulator
-  #     MAC_BUILD_PATH: ${{ format('{0}/build/StandaloneOSX', github.workspace) }}
-  #     PROJECT_NAME: Card Game Simulator
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       product: ["triple"]
-  #   if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && (contains(github.event.inputs.workflow_mode, 'StandaloneOSX') || contains(github.event.inputs.workflow_mode, 'Steam')))
-  #   steps:
-  #     - name: 获取代码存储库
-  #       uses: actions/checkout@v2
-  #     - name: 下载StandaloneOSX构建包
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: ${{ matrix.product }}-StandaloneOSX
-  #         path: build/StandaloneOSX
-  #     - name: 更新发行说明
-  #       if: github.event.action == 'published'
-  #       env:
-  #         RELEASE_NOTES: ${{ github.event.release.body }}
-  #       run: echo "$RELEASE_NOTES" > fastlane/metadata/zh-CN/release_notes.txt
-  #     - name: 修复文件权限和代码签名
-  #       run: |
-  #         bundle install
-  #         bundle exec fastlane mac fixversion
-  #         find $MAC_BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
-  #         chmod +x fastlane/sign-mac-build.sh
-  #         ./fastlane/sign-mac-build.sh
-  #     - name: 运行fastlane
-  #       if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'StandaloneOSX'))
-  #       run: bundle exec fastlane mac macupload
-  #     - name: 上传构建结果
-  #       uses: actions/upload-artifact@v2
-  #       if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Steam'))
-  #       with:
-  #         name: Card Game Simulator.app
-  #         path: build/StandaloneOSX/Card Game Simulator.app
-  #     - name: 打包App
-  #       uses: vimtor/action-zip@v1
-  #       if: github.event.action == 'published'
-  #       with:
-  #         files: build/StandaloneOSX/
-  #         dest: build/${{ matrix.product }}-StandaloneOSX.zip
-  #     - name: 上传压缩包到Github发布页
-  #       uses: svenstaro/upload-release-action@v2
-  #       if: github.event.action == 'published'
-  #       with:
-  #         repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-  #         asset_name: ${{ matrix.product }}-StandaloneOSX.zip
-  #         file: build/${{ matrix.product }}-StandaloneOSX.zip
-  #         tag: ${{ github.ref }}
-  #         overwrite: true
-  #         body: ${{ github.event.release.body }}
-
+  buildWithWindows2:
+    name: 为 StandaloneWindows64 平台构建 🍳
+    runs-on: windows-latest
+    needs: buildWithWindows
+    strategy:
+      fail-fast: false
+      matrix:
+        product: [ "triple" ]
+    if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, 'StandaloneWindows64') || contains(github.event.inputs.workflow_mode, 'Steam')
+    steps:
+      - name: 获取代码存储库
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: 获取版本
+        id: versioning
+        uses: paulhatch/semantic-version@v4.0.2
+        with:
+          format: "${major}.${minor}.${patch}"
+      - name: 设置Unity为IL2CPP模式
+        uses: kuler90/setup-unity@v1
+        with:
+          unity-modules: windows-il2cpp
+      - name: 激活Unity
+        uses: kuler90/activate-unity@v1
+        with:
+          unity-username: ${{ secrets.UNITY_EMAIL_2 }}
+          unity-password: ${{ secrets.UNITY_PASSWORD_2 }}
+          unity-authenticator-key: ${{ secrets.UNITY_AUTHENTICATOR_KEY_2 }}
+          unity-serial: ${{ secrets.UNITY_SERIAL_2 }}
+      - name: 构建Unity
+        uses: kuler90/build-unity@v1
+        with:
+          build-path: build/StandaloneWindows64
+          build-target: StandaloneWindows64
+          build-method: Hollywood.Builder.Editor.CommandBuilder.BuildOptions
+          build-version: ${{ steps.versioning.outputs.version }}
+      - name: 上传构建结果
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.product }}-StandaloneWindows64
+          path: build/StandaloneWindows64
+      - name: 压缩构建结果
+        uses: vimtor/action-zip@v1
+        if: github.event.action == 'published'
+        with:
+          files: build/StandaloneWindows64/
+          dest: build/${{ matrix.product }}-StandaloneWindows64.zip
+      - name: 上传压缩包到Github发布页
+        uses: svenstaro/upload-release-action@v2
+        if: github.event.action == 'published'
+        with:
+          repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          asset_name: ${{ matrix.product }}-StandaloneWindows64.zip
+          file: build/${{ matrix.product }}-StandaloneWindows64.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+          body: ${{ github.event.release.body }}
+  
+  
+  releaseToGooglePlay:
+    name: 发行到谷歌商店🍻
+    runs-on: ubuntu-latest
+    needs: buildWithLinux
+    strategy:
+      fail-fast: false
+      matrix:
+        product: [ "triple" ]
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Android'))
+    steps:
+      - name: 获取代码存储库
+        uses: actions/checkout@v2
+      - name: Download Android Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.product }}-Android
+          path: build/Android
+      - name: 更新发行说明
+        if: github.event.action == 'published'
+        env:
+          RELEASE_NOTES: ${{ github.event.release.body }}
+        run: echo "$RELEASE_NOTES" > fastlane/metadata/android/zh-CN/changelogs/default.txt
+      - name: 添加身份验证
+        env:
+          GOOGLE_PLAY_KEY_FILE: ${{ secrets.GOOGLE_PLAY_KEY_FILE }}
+          GOOGLE_PLAY_KEY_FILE_PATH: ${{ format('{0}/fastlane/api-halfmillion.json', github.workspace) }}
+        run: echo "$GOOGLE_PLAY_KEY_FILE" > $GOOGLE_PLAY_KEY_FILE_PATH
+      - name: 设置Ruby环境
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7.2
+          bundler-cache: true
+      - name: 上传到谷歌商店
+        env:
+          GOOGLE_PLAY_KEY_FILE_PATH: ${{ format('{0}/fastlane/api-halfmillion.json', github.workspace) }}
+          ANDROID_BUILD_FILE_PATH: ${{ format('{0}/build/Android/Android.aab', github.workspace) }}
+          ANDROID_PACKAGE_NAME: com.halfmillion.${{ matrix.product }}
+        uses: maierj/fastlane-action@v2.0.1
+        with:
+          lane: "android playprod"
+  
+  
+  releaseToAppStore:
+    name: 发行到AppStore🍻
+    runs-on: macos-latest
+    needs: buildWithLinux
+    strategy:
+      fail-fast: false
+      matrix:
+        product: [ "triple" ]
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'iOS'))
+    steps:
+      - name: 获取代码存储库
+        uses: actions/checkout@v2
+      - name: 下载iOS构建包
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.product }}-iOS
+          path: build/iOS
+      - name: 更新发行说明
+        if: github.event.action == 'published'
+        env:
+          RELEASE_NOTES: ${{ github.event.release.body }}
+        run: echo "$RELEASE_NOTES" > fastlane/metadata/zh-CN/release_notes.txt
+      - name: 修复文件权限、代码签名和运行fastlane
+        env:
+          APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
+          APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_TEAM_NAME: ${{ secrets.APPLE_TEAM_NAME }}
+          MATCH_URL: ${{ secrets.MATCH_URL }}
+          MATCH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_P8: ${{ secrets.APPSTORE_P8 }}
+          USYM_UPLOAD_AUTH_TOKEN: ${{ secrets.USYM_UPLOAD_AUTH_TOKEN }}
+          IOS_APP_ID: com.halfmillion.${{ matrix.product }}
+          IOS_BUILD_PATH: ${{ format('{0}/build/iOS', github.workspace) }}
+          PROJECT_NAME: Card Game Simulator
+        run: |
+          find $IOS_BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
+          find $IOS_BUILD_PATH -type f -iname "usymtool" -exec chmod +x {} \;
+          bundle install
+          bundle exec fastlane ios release
+  
+  
+  releaseToMacAppStore:
+    name: 发行到MacAppStore🍻
+    runs-on: macos-latest
+    needs: buildWithLinux
+    env:
+      APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
+      APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_TEAM_NAME: ${{ secrets.APPLE_TEAM_NAME }}
+      APPLE_DISTRIBUTION_CERTIFICATE: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE }}
+      APPLE_DISTRIBUTION_PASSWORD: ${{ secrets.APPLE_DISTRIBUTION_PASSWORD }}
+      MAC_INSTALLER_CERTIFICATE: ${{ secrets.MAC_INSTALLER_CERTIFICATE }}
+      MAC_INSTALLER_PASSWORD: ${{ secrets.MAC_INSTALLER_PASSWORD }}
+      APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+      APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+      APPSTORE_P8: ${{ secrets. APPSTORE_P8 }}
+      MAC_APP_BUNDLE_PATHS: Contents/PlugIns/StandaloneFileBrowser.bundle
+      MAC_APP_ID: com.halfmillion.${{ matrix.product }}
+      MAC_BUILD_PATH: ${{ format('{0}/build/StandaloneOSX', github.workspace) }}
+      PROJECT_NAME: Card Game Simulator
+    strategy:
+      fail-fast: false
+      matrix:
+        product: [ "triple" ]
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && (contains(github.event.inputs.workflow_mode, 'StandaloneOSX') || contains(github.event.inputs.workflow_mode, 'Steam')))
+    steps:
+      - name: 获取代码存储库
+        uses: actions/checkout@v2
+      - name: 下载StandaloneOSX构建包
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.product }}-StandaloneOSX
+          path: build/StandaloneOSX
+      - name: 更新发行说明
+        if: github.event.action == 'published'
+        env:
+          RELEASE_NOTES: ${{ github.event.release.body }}
+        run: echo "$RELEASE_NOTES" > fastlane/metadata/zh-CN/release_notes.txt
+      - name: 修复文件权限和代码签名
+        run: |
+          bundle install
+          bundle exec fastlane mac fixversion
+          find $MAC_BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
+          chmod +x fastlane/sign-mac-build.sh
+          ./fastlane/sign-mac-build.sh
+      - name: 运行fastlane
+        if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'StandaloneOSX'))
+        run: bundle exec fastlane mac macupload
+      - name: 上传构建结果
+        uses: actions/upload-artifact@v2
+        if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Steam'))
+        with:
+          name: Card Game Simulator.app
+          path: build/StandaloneOSX/Card Game Simulator.app
+      - name: 打包App
+        uses: vimtor/action-zip@v1
+        if: github.event.action == 'published'
+        with:
+          files: build/StandaloneOSX/
+          dest: build/${{ matrix.product }}-StandaloneOSX.zip
+      - name: 上传压缩包到Github发布页
+        uses: svenstaro/upload-release-action@v2
+        if: github.event.action == 'published'
+        with:
+          repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          asset_name: ${{ matrix.product }}-StandaloneOSX.zip
+          file: build/${{ matrix.product }}-StandaloneOSX.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+          body: ${{ github.event.release.body }}
+  
+  
   releaseToGitHubPages:
     name: 通过GitHubPages发布到Web🍻
     runs-on: ubuntu-latest
@@ -446,236 +450,239 @@ jobs:
           branch: main
           file_pattern: docs/**
           commit_message: 部署到GitHubPages
-
-  # releaseToMicrosoftStore:
-  #   name: 发行到MicrosoftStore🍻
-  #   runs-on: windows-latest
-  #   needs: buildWithWindows
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       product: ["triple"]
-  #   if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WSAPlayer'))
-  #   env:
-  #     Wap_Project_Directory: build\WSAPlayer\Card Game Simulator
-  #     SigningCertificate: Card Game Simulator_StoreKey.pfx
-  #   steps:
-  #     - name: 获取代码存储库
-  #       uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 0
-  #     - name: 下载WSAPlayer构建包
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: ${{ matrix.product }}-WSAPlayer
-  #         path: build/WSAPlayer
-  #     - name: 更新发行说明
-  #       if: github.event.action == 'published'
-  #       shell: bash
-  #       env:
-  #         RELEASE_NOTES: ${{ github.event.release.body }}
-  #       run: echo "$RELEASE_NOTES" > fastlane/metadata/zh-CN/release_notes.txt
-  #     - name: 设置Unity为IL2CPP模式
-  #       uses: kuler90/setup-unity@v1
-  #       with:
-  #         unity-modules: windows-il2cpp
-  #     - name: 设置Unity为UWP构建模式
-  #       uses: kuler90/setup-unity@v1
-  #       with:
-  #         unity-modules: universal-windows-platform
-  #     - uses: ilammy/msvc-dev-cmd@v1
-  #     - name: 设置MSBuild
-  #       uses: microsoft/setup-msbuild@v1
-  #     - name: Remove spaces from project name
-  #       uses: davidmfinol/replace-action@master
-  #       with:
-  #         files: "build/WSAPlayer/Card Game Simulator.sln"
-  #         replacements: '"Card Game Simulator"="CardGameSimulator"'
-  #     - name: 从项目名称中删除空格
-  #       uses: davidmfinol/replace-action@master
-  #       with:
-  #         files: "build/WSAPlayer/Card Game Simulator/Card Game Simulator.vcxproj"
-  #         replacements: "</PropertyGroup>=<ProjectName>CardGameSimulator</ProjectName></PropertyGroup>"
-  #     - name: 还原Wpf应用程序以填充obj文件夹
-  #       shell: pwsh
-  #       env:
-  #         SolutionPath: build\WSAPlayer\Card Game Simulator.sln
-  #         Configuration: Master
-  #         RuntimeIdentifier: win-x64
-  #       run: msbuild $env:SolutionPath /t:Restore /p:Configuration=$env:Configuration /p:RuntimeIdentifier=$env:RuntimeIdentifier
-  #     - name: 解码Pfx
-  #       shell: pwsh
-  #       run: |
-  #         $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.MICROSOFT_STORE_PFX_FILE }}")
-  #         $currentDirectory = Get-Location
-  #         $certificatePath = Join-Path -Path $currentDirectory -ChildPath $env:Wap_Project_Directory -AdditionalChildPath $env:SigningCertificate
-  #         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
-  #     - name: 构建.appxupload
-  #       shell: pwsh
-  #       env:
-  #         SolutionPath: build\WSAPlayer\Card Game Simulator.sln
-  #         Configuration: Master
-  #         TargetPlatform: x64
-  #         BuildMode: StoreUpload
-  #         AppxBundle: Always
-  #       run: msbuild $env:SolutionPath /p:Configuration=$env:Configuration /p:Platform=$env:TargetPlatform /p:UapAppxPackageBuildMode=$env:BuildMode /p:AppxBundle=$env:AppxBundle
-  #     - name: 移除.pfx
-  #       shell: pwsh
-  #       run: Remove-Item -path $env:Wap_Project_Directory\$env:SigningCertificate
-  #     - name: 获取发行说明
-  #       id: changelog
-  #       shell: bash
-  #       run: |
-  #         export RELEASE_NOTES="$(cat fastlane/metadata/zh-CN/release_notes.txt)"
-  #         RELEASE_NOTES="${RELEASE_NOTES//'%'/'%25'}"
-  #         RELEASE_NOTES="${RELEASE_NOTES//$'\n'/'%0A'}"
-  #         RELEASE_NOTES="${RELEASE_NOTES//$'\r'/'%0D'}"
-  #         echo "$RELEASE_NOTES"
-  #         echo "::set-output name=RELEASE_NOTES::$RELEASE_NOTES"
-  #     - name: 应用发行说明
-  #       uses: davidmfinol/replace-action@master
-  #       with:
-  #         files: "storebroker/zh-CN/PDP.xml"
-  #         replacements: "OUTPUT_RELEASE_NOTES=${{ steps.changelog.outputs.RELEASE_NOTES }}"
-  #     - name: 获取版本
-  #       id: versioning
-  #       uses: paulhatch/semantic-version@v4.0.2
-  #       with:
-  #         format: "${major}.${minor}.${patch}"
-  #     - name: 上传到微软商店
-  #       shell: pwsh
-  #       env:
-  #         MICROSOFT_TENANT_ID: ${{ secrets.MICROSOFT_TENANT_ID }}
-  #         MICROSOFT_CLIENT_ID: ${{ secrets.MICROSOFT_CLIENT_ID }}
-  #         MICROSOFT_KEY: ${{ secrets.MICROSOFT_KEY }}
-  #         MICROSOFT_APP_ID: 9N96N5S4W3J0
-  #         STOREBROKER_CONFIG_PATH: ${{ format('{0}\storebroker\SBConfig.json', github.workspace) }}
-  #         PDP_ROOT_PATH: ${{ format('{0}\storebroker\', github.workspace) }}
-  #         IMAGES_ROOT_PATH: ${{ format('{0}\docs\assets\img\', github.workspace) }}
-  #         APPX_PATH: ${{ format('{0}\build\WSAPlayer\AppPackages\CardGameSimulator\CardGameSimulator_{1}.0_x64_bundle_Master.appxupload', github.workspace, steps.versioning.outputs.version) }}
-  #         OUT_PATH: ${{ format('{0}\build\WSAPlayer\', github.workspace) }}
-  #         SUBMISSION_DATA_PATH: ${{ format('{0}\build\WSAPlayer\upload.json', github.workspace) }}
-  #         PACKAGE_PATH: ${{ format('{0}\build\WSAPlayer\upload.zip', github.workspace) }}
-  #       run: |
-  #         Install-Module -Name StoreBroker -AcceptLicense -Force
-  #         $pass = ConvertTo-SecureString $env:MICROSOFT_KEY -AsPlainText -Force
-  #         $cred = New-Object System.Management.Automation.PSCredential ($env:MICROSOFT_CLIENT_ID, $pass)
-  #         Set-StoreBrokerAuthentication -TenantId $env:MICROSOFT_TENANT_ID -Credential $cred
-  #         New-SubmissionPackage -ConfigPath $env:STOREBROKER_CONFIG_PATH -PDPRootPath $env:PDP_ROOT_PATH -ImagesRootPath $env:IMAGES_ROOT_PATH -AppxPath $env:APPX_PATH -OutPath $env:OUT_PATH -OutName 'upload' -Verbose
-  #         Update-ApplicationSubmission -AppId $env:MICROSOFT_APP_ID -SubmissionDataPath $env:SUBMISSION_DATA_PATH -PackagePath $env:PACKAGE_PATH -ReplacePackages -UpdateListings -AutoCommit -Force
-
-  # releaseToSteam:
-  #   name: 发布到Steam🍻
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     [
-  #       buildWithLinux,
-  #       buildWithWindows,
-  #       buildWithWindows2,
-  #       releaseToMacAppStore,
-  #     ]
-  #   if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Steam'))
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       product: ["triple"]
-  #   steps:
-  #     - name: 获取代码存储库
-  #       uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 0
-  #     - name: 下载StandaloneWindows构建包
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: ${{ matrix.product }}-StandaloneWindows
-  #         path: build/StandaloneWindows
-  #     - name: 下载StandaloneLinux64构建包
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: ${{ matrix.product }}-StandaloneLinux64
-  #         path: build/StandaloneLinux64
-  #     - name: 下载StandaloneWindows64构建包
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: ${{ matrix.product }}-StandaloneWindows64
-  #         path: build/StandaloneWindows64
-  #     - name: 下载App
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: Card Game Simulator.app
-  #         path: build/StandaloneOSX/Card Game Simulator.app
-  #     - name: 获取版本
-  #       id: versioning
-  #       uses: paulhatch/semantic-version@v4.0.2
-  #       with:
-  #         format: "${major}.${minor}.${patch}"
-  #     - name: 部署到Steam
-  #       uses: game-ci/steam-deploy@v1
-  #       with:
-  #         username: ${{ secrets.STEAM_USERNAME }}
-  #         password: ${{ secrets.STEAM_PASSWORD }}
-  #         configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
-  #         ssfnFileName: ${{ secrets.STEAM_SSFN_FILE_NAME }}
-  #         ssfnFileContents: ${{ secrets.STEAM_SSFN_FILE_CONTENTS }}
-  #         appId: 1742850
-  #         buildDescription: v${{ steps.versioning.outputs.version }}
-  #         rootPath: build
-  #         depot1Path: StandaloneWindows
-  #         depot2Path: StandaloneLinux64
-  #         depot3Path: StandaloneWindows64
-  #         depot4Path: StandaloneOSX
-  #         releaseBranch: prerelease
-
-  # announceReleaseToSocialMedia:
-  #   name: 宣布到社会媒体
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     [
-  #       releaseToGooglePlay,
-  #       releaseToAppStore,
-  #       releaseToMacAppStore,
-  #       releaseToGitHubPages,
-  #       releaseToSteam,
-  #       releaseToMicrosoftStore,
-  #     ]
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       product: ["triple"]
-  #   steps:
-  #     - name: 获取代码存储库
-  #       uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 0
-  #     - name: 获取版本
-  #       id: versioning
-  #       uses: paulhatch/semantic-version@v4.0.2
-  #       with:
-  #         format: "${major}.${minor}.${patch}"
-  #     - name: 准备公告
-  #       id: prepare
-  #       shell: bash
-  #       env:
-  #         VERSION: ${{ steps.versioning.outputs.version }}
-  #         RELEASE_NOTES: ${{ github.event.release.body }}
-  #       run: |
-  #         export ANNOUNCEMENT="CGS $VERSION is out for release! $RELEASE_NOTES"
-  #         ANNOUNCEMENT="${ANNOUNCEMENT//'%'/'%25'}"
-  #         ANNOUNCEMENT="${ANNOUNCEMENT//$'\n'/'%0A'}"
-  #         ANNOUNCEMENT="${ANNOUNCEMENT//$'\r'/'%0D'}"
-  #         echo "$ANNOUNCEMENT"
-  #         echo "::set-output name=ANNOUNCEMENT::$ANNOUNCEMENT"
-  #     - name: Discord 公告
-  #       env:
-  #         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-  #       uses: Ilshidur/action-discord@0.3.2
-  #       with:
-  #         args: ${{ steps.prepare.outputs.ANNOUNCEMENT }}
-  #     - name: Twitter 公告
-  #       uses: ethomson/send-tweet-action@v1
-  #       with:
-  #         status: ${{ steps.prepare.outputs.ANNOUNCEMENT }}
-  #         consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
-  #         consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
-  #         access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-  #         access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+  
+  
+  releaseToMicrosoftStore:
+    name: 发行到MicrosoftStore🍻
+    runs-on: windows-latest
+    needs: buildWithWindows
+    strategy:
+      fail-fast: false
+      matrix:
+        product: [ "triple" ]
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WSAPlayer'))
+    env:
+      Wap_Project_Directory: build\WSAPlayer\Card Game Simulator
+      SigningCertificate: Card Game Simulator_StoreKey.pfx
+    steps:
+      - name: 获取代码存储库
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: 下载WSAPlayer构建包
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.product }}-WSAPlayer
+          path: build/WSAPlayer
+      - name: 更新发行说明
+        if: github.event.action == 'published'
+        shell: bash
+        env:
+          RELEASE_NOTES: ${{ github.event.release.body }}
+        run: echo "$RELEASE_NOTES" > fastlane/metadata/zh-CN/release_notes.txt
+      - name: 设置Unity为IL2CPP模式
+        uses: kuler90/setup-unity@v1
+        with:
+          unity-modules: windows-il2cpp
+      - name: 设置Unity为UWP构建模式
+        uses: kuler90/setup-unity@v1
+        with:
+          unity-modules: universal-windows-platform
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: 设置MSBuild
+        uses: microsoft/setup-msbuild@v1
+      - name: Remove spaces from project name
+        uses: davidmfinol/replace-action@master
+        with:
+          files: "build/WSAPlayer/Card Game Simulator.sln"
+          replacements: '"Card Game Simulator"="CardGameSimulator"'
+      - name: 从项目名称中删除空格
+        uses: davidmfinol/replace-action@master
+        with:
+          files: "build/WSAPlayer/Card Game Simulator/Card Game Simulator.vcxproj"
+          replacements: "</PropertyGroup>=<ProjectName>CardGameSimulator</ProjectName></PropertyGroup>"
+      - name: 还原Wpf应用程序以填充obj文件夹
+        shell: pwsh
+        env:
+          SolutionPath: build\WSAPlayer\Card Game Simulator.sln
+          Configuration: Master
+          RuntimeIdentifier: win-x64
+        run: msbuild $env:SolutionPath /t:Restore /p:Configuration=$env:Configuration /p:RuntimeIdentifier=$env:RuntimeIdentifier
+      - name: 解码Pfx
+        shell: pwsh
+        run: |
+          $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.MICROSOFT_STORE_PFX_FILE }}")
+          $currentDirectory = Get-Location
+          $certificatePath = Join-Path -Path $currentDirectory -ChildPath $env:Wap_Project_Directory -AdditionalChildPath $env:SigningCertificate
+          [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+      - name: 构建.appxupload
+        shell: pwsh
+        env:
+          SolutionPath: build\WSAPlayer\Card Game Simulator.sln
+          Configuration: Master
+          TargetPlatform: x64
+          BuildMode: StoreUpload
+          AppxBundle: Always
+        run: msbuild $env:SolutionPath /p:Configuration=$env:Configuration /p:Platform=$env:TargetPlatform /p:UapAppxPackageBuildMode=$env:BuildMode /p:AppxBundle=$env:AppxBundle
+      - name: 移除.pfx
+        shell: pwsh
+        run: Remove-Item -path $env:Wap_Project_Directory\$env:SigningCertificate
+      - name: 获取发行说明
+        id: changelog
+        shell: bash
+        run: |
+          export RELEASE_NOTES="$(cat fastlane/metadata/zh-CN/release_notes.txt)"
+          RELEASE_NOTES="${RELEASE_NOTES//'%'/'%25'}"
+          RELEASE_NOTES="${RELEASE_NOTES//$'\n'/'%0A'}"
+          RELEASE_NOTES="${RELEASE_NOTES//$'\r'/'%0D'}"
+          echo "$RELEASE_NOTES"
+          echo "::set-output name=RELEASE_NOTES::$RELEASE_NOTES"
+      - name: 应用发行说明
+        uses: davidmfinol/replace-action@master
+        with:
+          files: "storebroker/zh-CN/PDP.xml"
+          replacements: "OUTPUT_RELEASE_NOTES=${{ steps.changelog.outputs.RELEASE_NOTES }}"
+      - name: 获取版本
+        id: versioning
+        uses: paulhatch/semantic-version@v4.0.2
+        with:
+          format: "${major}.${minor}.${patch}"
+      - name: 上传到微软商店
+        shell: pwsh
+        env:
+          MICROSOFT_TENANT_ID: ${{ secrets.MICROSOFT_TENANT_ID }}
+          MICROSOFT_CLIENT_ID: ${{ secrets.MICROSOFT_CLIENT_ID }}
+          MICROSOFT_KEY: ${{ secrets.MICROSOFT_KEY }}
+          MICROSOFT_APP_ID: 9N96N5S4W3J0
+          STOREBROKER_CONFIG_PATH: ${{ format('{0}\storebroker\SBConfig.json', github.workspace) }}
+          PDP_ROOT_PATH: ${{ format('{0}\storebroker\', github.workspace) }}
+          IMAGES_ROOT_PATH: ${{ format('{0}\docs\assets\img\', github.workspace) }}
+          APPX_PATH: ${{ format('{0}\build\WSAPlayer\AppPackages\CardGameSimulator\CardGameSimulator_{1}.0_x64_bundle_Master.appxupload', github.workspace, steps.versioning.outputs.version) }}
+          OUT_PATH: ${{ format('{0}\build\WSAPlayer\', github.workspace) }}
+          SUBMISSION_DATA_PATH: ${{ format('{0}\build\WSAPlayer\upload.json', github.workspace) }}
+          PACKAGE_PATH: ${{ format('{0}\build\WSAPlayer\upload.zip', github.workspace) }}
+        run: |
+          Install-Module -Name StoreBroker -AcceptLicense -Force
+          $pass = ConvertTo-SecureString $env:MICROSOFT_KEY -AsPlainText -Force
+          $cred = New-Object System.Management.Automation.PSCredential ($env:MICROSOFT_CLIENT_ID, $pass)
+          Set-StoreBrokerAuthentication -TenantId $env:MICROSOFT_TENANT_ID -Credential $cred
+          New-SubmissionPackage -ConfigPath $env:STOREBROKER_CONFIG_PATH -PDPRootPath $env:PDP_ROOT_PATH -ImagesRootPath $env:IMAGES_ROOT_PATH -AppxPath $env:APPX_PATH -OutPath $env:OUT_PATH -OutName 'upload' -Verbose
+          Update-ApplicationSubmission -AppId $env:MICROSOFT_APP_ID -SubmissionDataPath $env:SUBMISSION_DATA_PATH -PackagePath $env:PACKAGE_PATH -ReplacePackages -UpdateListings -AutoCommit -Force
+  
+  
+  releaseToSteam:
+    name: 发布到Steam🍻
+    runs-on: ubuntu-latest
+    needs:
+      [
+          buildWithLinux,
+          buildWithWindows,
+          buildWithWindows2,
+          releaseToMacAppStore,
+      ]
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Steam'))
+    strategy:
+      fail-fast: false
+      matrix:
+        product: [ "triple" ]
+    steps:
+      - name: 获取代码存储库
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: 下载StandaloneWindows构建包
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.product }}-StandaloneWindows
+          path: build/StandaloneWindows
+      - name: 下载StandaloneLinux64构建包
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.product }}-StandaloneLinux64
+          path: build/StandaloneLinux64
+      - name: 下载StandaloneWindows64构建包
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.product }}-StandaloneWindows64
+          path: build/StandaloneWindows64
+      - name: 下载App
+        uses: actions/download-artifact@v2
+        with:
+          name: Card Game Simulator.app
+          path: build/StandaloneOSX/Card Game Simulator.app
+      - name: 获取版本
+        id: versioning
+        uses: paulhatch/semantic-version@v4.0.2
+        with:
+          format: "${major}.${minor}.${patch}"
+      - name: 部署到Steam
+        uses: game-ci/steam-deploy@v1
+        with:
+          username: ${{ secrets.STEAM_USERNAME }}
+          password: ${{ secrets.STEAM_PASSWORD }}
+          configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
+          ssfnFileName: ${{ secrets.STEAM_SSFN_FILE_NAME }}
+          ssfnFileContents: ${{ secrets.STEAM_SSFN_FILE_CONTENTS }}
+          appId: 1742850
+          buildDescription: v${{ steps.versioning.outputs.version }}
+          rootPath: build
+          depot1Path: StandaloneWindows
+          depot2Path: StandaloneLinux64
+          depot3Path: StandaloneWindows64
+          depot4Path: StandaloneOSX
+          releaseBranch: prerelease
+  
+  
+  announceReleaseToSocialMedia:
+    name: 宣布到社会媒体
+    runs-on: ubuntu-latest
+    needs:
+      [
+          releaseToGooglePlay,
+          releaseToAppStore,
+          releaseToMacAppStore,
+          releaseToGitHubPages,
+          releaseToSteam,
+          releaseToMicrosoftStore,
+      ]
+    strategy:
+      fail-fast: false
+      matrix:
+        product: [ "triple" ]
+    steps:
+      - name: 获取代码存储库
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: 获取版本
+        id: versioning
+        uses: paulhatch/semantic-version@v4.0.2
+        with:
+          format: "${major}.${minor}.${patch}"
+      - name: 准备公告
+        id: prepare
+        shell: bash
+        env:
+          VERSION: ${{ steps.versioning.outputs.version }}
+          RELEASE_NOTES: ${{ github.event.release.body }}
+        run: |
+          export ANNOUNCEMENT="CGS $VERSION is out for release! $RELEASE_NOTES"
+          ANNOUNCEMENT="${ANNOUNCEMENT//'%'/'%25'}"
+          ANNOUNCEMENT="${ANNOUNCEMENT//$'\n'/'%0A'}"
+          ANNOUNCEMENT="${ANNOUNCEMENT//$'\r'/'%0D'}"
+          echo "$ANNOUNCEMENT"
+          echo "::set-output name=ANNOUNCEMENT::$ANNOUNCEMENT"
+      - name: Discord 公告
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        uses: Ilshidur/action-discord@0.3.2
+        with:
+          args: ${{ steps.prepare.outputs.ANNOUNCEMENT }}
+      - name: Twitter 公告
+        uses: ethomson/send-tweet-action@v1
+        with:
+          status: ${{ steps.prepare.outputs.ANNOUNCEMENT }}
+          consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+          consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+          access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
