@@ -57,14 +57,18 @@ UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
 ## GITHUB_TOKEN
 
-1. 这个不需要填写, `Github Action` 文档里面的意思好像会自动填写.
+~~1. 这个不需要填写, `Github Action` 文档里面的意思好像会自动填写.~~
+
+所有以 `GITHUB` 开头的都不允许填写.
+详见对应[文档](https://docs.github.com/cn/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token)
 
 ## ANDROID_KEYSTORE_BASE64
 
 其实也就是整个文件 _base64_ 处理
 
-### ~~_
-windows_ 环境下使用[certutil](https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/certutil)~~ 该方法并不适用
+### ~~ _windows_ 环境下使用[certutil](https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/certutil) ~~
+
+该方法并不适用
 
 1. ~~生成~~
    ~~`certutil -encode release.keystore release.base64` 只需要复制里面的内容即可~~
