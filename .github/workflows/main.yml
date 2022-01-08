@@ -15,7 +15,7 @@ on:
       workflow_mode:
         description: "[release] [Android, iOS, StandaloneOSX, StandaloneLinux64, WebGL, StandaloneWindows, WSAPlayer, StandaloneWindows64, Steam]"
         required: false
-        default: "WebGL"
+        default: "release, WebGL"
 
 jobs:
   tests:
