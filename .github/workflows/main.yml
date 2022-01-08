@@ -85,12 +85,14 @@ jobs:
       fail-fast: false
       matrix:
         targetPlatform:
-          # - Android
+          - Android
           # - iOS
           # - StandaloneOSX
           # - StandaloneLinux64
           - WebGL
     if: contains(github.event.inputs.unity_environment, 'Linux')
+    outputs:
+      targetPlatform: ${{ matrix.targetPlatform }}
     steps:
       - name: 为安卓释放可用磁盘空间
         if: matrix.targetPlatform == 'Android'
@@ -283,7 +285,7 @@ jobs:
     name: 发行到谷歌商店🍻
     runs-on: ubuntu-latest
     needs: buildWithLinux
-    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Android'))
+    if: (github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Android'))) && ${{needs.buildWithLinux.outputs.targetPlatform}}
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
