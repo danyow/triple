@@ -49,8 +49,8 @@ UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 2. 推送该文件并手动运行该`Action`等待片刻得到一个`Unity_v20XX.X.XXXX.alf`并下载保存解压
 3. 访问[手动激活 Unity 许可证](https://license.unity3d.com/manual)
 4. 上传刚刚得到的`.alf`文件
-   1. 可能会有 _serial has reached the maximum number of activations._ 这个问题的出现, 目前没有好的解决方案.
-   2. 我的解决方案是创建了一个新的账号, 这个账号不在个人电脑上操作.
+    1. 可能会有 _serial has reached the maximum number of activations._ 这个问题的出现, 目前没有好的解决方案.
+    2. 我的解决方案是创建了一个新的账号, 这个账号不在个人电脑上操作.
 5. 得到一个 `Unity_v20XX.x.ulf` 文件, 里面的内容便是.
 
 > 注意：更改 Unity 版本时，您可能需要重复相同的过程。
@@ -63,7 +63,8 @@ UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
 其实也就是整个文件 _base64_ 处理
 
-### ~~_windows_ 环境下使用[certutil](https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/certutil)~~ 该方法并不适用
+### ~~_
+windows_ 环境下使用[certutil](https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/certutil)~~ 该方法并不适用
 
 1. ~~生成~~
    ~~`certutil -encode release.keystore release.base64` 只需要复制里面的内容即可~~
@@ -106,3 +107,27 @@ UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 3. 通过身份验证器应用程序激活双因素身份验证
 4. 在带有 **QR** 码的页面上，单击"无法扫描条形码？"并保存密钥（删除其中的空格）
 5. 完成激活
+
+## GOOGLE_PLAY_KEY_FILE
+
+获取 API 访问权限 利用 Google Play Developer Publishing API 实现应用配置自动化，并将应用版本整合到您现有的工具和流程中。
+
+1. 打开 _Google Play 管理中心(Google Play Console)_
+2. 单击 _帐户详情_ ，然后下滑找到并记下其中列出的 _开发者帐号 ID_
+3. 单击 _设置_ → _API 权限_
+4. 单击 _选择要关联的项目_
+5. 单击 _我同意_ → _创建新项目_ → _关联项目_
+6. 在 **服务账号** 这一栏目里面有 单击 _创建新的服务账号_.
+7. 在弹出的对话框中的 _Google 云端平台(Google Cloud Platform)_ 链接，该链接将打开一个新标签页：
+    1. 在 **搜索框** 左边有一个 下来框, 如果显示 **选择项目**, 需要下来选择到 _Google Play Console Developer_
+    2. 然后 _创建服务账号_
+        1. 输入 _服务账号名称_ → 输入 _服务账号说明_
+        2. 点击 _创建并继续_
+        3. 单击 _请选择一个角色_ → 筛选框内输入 `Service Account User` 并选中筛选结果.
+        4. 直接点击继续
+    3. 得到一个账号后, 在`操作`那里有垂直三点图标, 点开选中 _管理密钥_ → _添加密钥_ → 选择 `JSON` 后直接创建.
+    4. 这时候浏览器将会提示将文件保存在计算机上，并记住文件保存到的位置.
+8. 返回 _Google Play 管理中心_ 标签页，然后点击 _完成_ 以关闭对话框
+9. 然后底部就会出现一个新的服务账户 单击 _授予访问权_.
+10. 建议直接选择 _管理员(所有权限)_ → _邀请用户_ → _发送邀请_
+11. 完成.

@@ -1,7 +1,3 @@
-## What's Changed
-* Main by @danyow in https://github.com/danyow/triple/pull/1
-
-## New Contributors
-* @danyow made their first contribution in https://github.com/danyow/triple/pull/1
-
-**Full Changelog**: https://github.com/danyow/triple/commits/v1.0.0
+- Bug-Fix: Set Import and Multiplayer Menu freeze
+- Bug-Fix: Deep Links
+- Bug-Fix: Cards duplicated when multiple players draw from the same stack at the same time
