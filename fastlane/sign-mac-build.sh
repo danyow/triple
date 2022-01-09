@@ -1,6 +1,6 @@
 #! /bin/sh
 
-echo "Setting up macOS certificates..."
+echo "正在设置 macOS 证书..."
 sleep 10
 
 KEYCHAIN_FILE=macos.keychain
@@ -32,8 +32,8 @@ security set-key-partition-list -S apple-tool:,apple: -s -k $KEYCHAIN_PASSWORD $
 security find-identity -v
 
 sleep 10
-echo "Finished setting up macOS certificate!"
-echo "Signing app..."
+echo "完成设置 macOS 证书！"
+echo "签署应用程序..."
 sleep 10
 
 mv "${MAC_BUILD_PATH}/StandaloneOSX.app" "${MAC_BUILD_PATH}/${PROJECT_NAME}.app"
@@ -47,12 +47,12 @@ done
 codesign --deep --force --verbose --sign "Apple Distribution: ${APPLE_TEAM_NAME} (${APPLE_TEAM_ID})" --entitlements "fastlane/${PROJECT_NAME}.entitlements" "${MAC_BUILD_PATH}/${PROJECT_NAME}.app"
 
 sleep 10
-echo "Packaging app..."
+echo "打包应用..."
 sleep 10
 
 productbuild --component "${MAC_BUILD_PATH}/${PROJECT_NAME}.app" /Applications --sign "3rd Party Mac Developer Installer: ${APPLE_TEAM_NAME} (${APPLE_TEAM_ID})" "${PROJECT_NAME}.pkg"
 STATUS_CODE=$?
 
 sleep 10
-echo "App ready! Finishing with code $STATUS_CODE"
+echo "应用程序准备就绪！使用代码 $STATUS_CODE 完成"
 exit $STATUS_CODE

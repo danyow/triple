@@ -1,1 +1,1 @@
-Create, share, and play card games with Card Game Simulator.
+使用 Card Game Simulator 创建、分享和玩纸牌游戏。

@@ -316,7 +316,7 @@ jobs:
           ANDROID_PACKAGE_NAME: com.halfmillion.${{ github.event.inputs.product_short }}
         uses: maierj/fastlane-action@v2.0.1
         with:
-          lane: "android playprod"
+          lane: "android internal"
   
   releaseToAppStore:
     name: 发行到AppStore🍻

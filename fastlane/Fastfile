@@ -1,11 +1,33 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
+# 此文件包含 fastlane.tools 配置您可以在以下位置找到文档 https://docs.fastlane.tools
 
 platform :android do
+  
+  # track:
+  #   internal 内部测试
+  #   alpha Alpha测试
+  #   beta 开放测试
+  #   production 生产
+  # aab:
+  #   要上传的 AAB 文件的路径
 
-  desc "Upload a new Android version to the Google Play Store"
-  lane :playprod do
-    upload_to_play_store(aab: "#{ENV['ANDROID_BUILD_FILE_PATH']}")
+  desc "将新的 Android 版本上传到 Google Play 商店 (内部测试)"
+  lane :internal do
+    upload_to_play_store(aab: "#{ENV['ANDROID_BUILD_FILE_PATH']}", track: "internal") 
+  end
+  
+  desc "将新的 Android 版本上传到 Google Play 商店 (Alpha测试)"
+  lane :alpha do
+    upload_to_play_store(aab: "#{ENV['ANDROID_BUILD_FILE_PATH']}", track: "alpha") 
+  end
+  
+  desc "将新的 Android 版本上传到 Google Play 商店 (开放测试)"
+  lane :beta do
+    upload_to_play_store(aab: "#{ENV['ANDROID_BUILD_FILE_PATH']}", track: "beta") 
+  end
+    
+  desc "将新的 Android 版本上传到 Google Play 商店 (生产)"
+  lane :production do
+    upload_to_play_store(aab: "#{ENV['ANDROID_BUILD_FILE_PATH']}", track: "production") 
   end
 
 end
@@ -13,25 +35,25 @@ end
 
 platform :ios do
 
-  desc "Deliver a new Release build to the App Store"
+  desc "向 App Store 交付新的 Release 版本"
   lane :release do
     build
     deliver
   end
 
-  desc "Deliver a new Beta build to Apple TestFlight"
+  desc "为 Apple TestFlight 提供新的 Beta 版本"
   lane :beta do
     build
-    upload_to_testflight(skip_waiting_for_build_processing: true)
+    upload_to_testflight(skip_waiting_for_build_processing: true) # 如果设置为 true，则该选项将不起作用，并且不会向测试人员分发任何内部版本。
   end
 
-  desc "Create .ipa"
+  desc "创建.ipa"
   lane :build do
     setup_ci
     app_store_connect_api_key(
-      key_id: ENV['APPSTORE_KEY_ID'],
-      issuer_id: ENV['APPSTORE_ISSUER_ID'],
-      key_content: ENV['APPSTORE_P8']
+      key_id: ENV['APPSTORE_KEY_ID'], # 密钥标识
+      issuer_id: ENV['APPSTORE_ISSUER_ID'], # 颁发者 ID
+      key_content: ENV['APPSTORE_P8'] # 密钥 p8 文件的内容
     )
     match(
       type: 'appstore',
@@ -73,7 +95,7 @@ end
 
 platform :mac do
 
-  desc "Hack so that Apple doesn't reject the mac build due to a mistake in versioning" 
+  desc "破解以便 Apple 不会因为版本控制错误而拒绝 mac 构建" 
   lane :fixversion do
     update_plist(
       plist_path: "#{ENV['MAC_BUILD_PATH']}/StandaloneOSX.app/Contents/Info.plist",
@@ -83,7 +105,7 @@ platform :mac do
     )
   end
 
-  desc "Upload a new Mac version to the Mac App Store"
+  desc "将新的 Mac 版本上传到 Mac App Store"
   lane :macupload do
     app_store_connect_api_key(
       key_id: ENV['APPSTORE_KEY_ID'],

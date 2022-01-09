@@ -1,27 +1,51 @@
 fastlane documentation
 ----
 
-# Installation
+# 安装
 
-Make sure you have the latest version of the Xcode command line tools installed:
+确保您安装了最新版本的 Xcode 命令行工具：
 
 ```sh
 xcode-select --install
 ```
 
-For _fastlane_ installation instructions, see [Installing _fastlane_](https://docs.fastlane.tools/#installing-fastlane)
+有关 _fastlane_ 安装说明，请参阅[Installing _fastlane_](https://docs.fastlane.tools/#installing-fastlane)
 
-# Available Actions
+# 可用操作
 
-## Android
+## 安卓
 
-### android playprod
+### android internal
 
 ```sh
-[bundle exec] fastlane android playprod
+[bundle exec] fastlane android internal
 ```
 
-Upload a new Android version to the Google Play Store
+将新的 Android 版本上传到 Google Play 商店(内部测试)
+
+### android alpha
+
+```sh
+[bundle exec] fastlane android alpha
+```
+
+将新的 Android 版本上传到 Google Play 商店(Alpha测试)
+
+### android beta
+
+```sh
+[bundle exec] fastlane android beta
+```
+
+将新的 Android 版本上传到 Google Play 商店(开放测试)
+
+### android production
+
+```sh
+[bundle exec] fastlane android production
+```
+
+将新的 Android 版本上传到 Google Play 商店(生产)
 
 ----
 
@@ -34,7 +58,7 @@ Upload a new Android version to the Google Play Store
 [bundle exec] fastlane ios release
 ```
 
-Deliver a new Release build to the App Store
+向 App Store 交付新的 Release 版本
 
 ### ios beta
 
@@ -42,7 +66,7 @@ Deliver a new Release build to the App Store
 [bundle exec] fastlane ios beta
 ```
 
-Deliver a new Beta build to Apple TestFlight
+为 Apple TestFlight 提供新的 Beta 版本
 
 ### ios build
 
@@ -50,7 +74,7 @@ Deliver a new Beta build to Apple TestFlight
 [bundle exec] fastlane ios build
 ```
 
-Create .ipa
+创建.ipa
 
 ----
 
@@ -63,7 +87,7 @@ Create .ipa
 [bundle exec] fastlane mac fixversion
 ```
 
-Hack so that Apple doesn't reject the mac build due to a mistake in versioning
+破解以便 Apple 不会因为版本控制错误而拒绝 mac 构建
 
 ### mac macupload
 
@@ -71,12 +95,12 @@ Hack so that Apple doesn't reject the mac build due to a mistake in versioning
 [bundle exec] fastlane mac macupload
 ```
 
-Upload a new Mac version to the Mac App Store
+将新的 Mac 版本上传到 Mac App Store
 
 ----
 
-This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
+此 README.md 是自动生成的，每次运行 [_fastlane_](https://fastlane.tools) 时都会重新生成。
 
-More information about _fastlane_ can be found on [fastlane.tools](https://fastlane.tools).
+关于 _fastlane_ 的更多信息可以在 [fastlane.tools](https://fastlane.tools) 上找到。
 
-The documentation of _fastlane_ can be found on [docs.fastlane.tools](https://docs.fastlane.tools).
+_fastlane_ 的文档可以在 [docs.fastlane.tools](https://docs.fastlane.tools) 上找到。

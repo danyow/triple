@@ -1,14 +1,13 @@
-# The Deliverfile allows you to store various iTunes Connect metadata
-# For more information, check out the docs
+# Deliverfile 允许您存储各种 iTunes Connect 元数据有关更多信息，请查看文档
 # https://docs.fastlane.tools/actions/deliver/
 
-submit_for_review true
-automatic_release true
-force true
-skip_screenshots true
-run_precheck_before_submit false
+submit_for_review true # 上传所有内容后提交新版本以供审核
+automatic_release true # 应用是否应在获得批准后自动发布？
+force true # 跳过 HTML 预览文件的验证
+skip_screenshots true # 请勿上传屏幕截图
+run_precheck_before_submit false # 在提交应用审核之前运行预检查
 
-submission_information({
+submission_information({ # 提交的额外信息（例如合规性规范、IDFA 设置）
   add_id_info_uses_idfa: false,
   export_compliance_compliance_required: false,
   export_compliance_encryption_updated: false,
@@ -23,5 +22,5 @@ submission_information({
 
 for_platform :mac do
   platform 'osx'
-  pkg "#{ENV['PROJECT_NAME']}.pkg"
+  pkg "#{ENV['PROJECT_NAME']}.pkg" # pkg 文件的路径
 end

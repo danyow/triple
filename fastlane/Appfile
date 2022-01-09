@@ -1,27 +1,26 @@
-# For more information about the Appfile, see:
-#     https://docs.fastlane.tools/advanced/#appfile
+# 有关 Appfile 的更多信息，请参阅：https://docs.fastlane.tools/advanced/#appfile
 
 for_platform :android do
-  package_name(ENV['ANDROID_PACKAGE_NAME'])
-  json_key_file(ENV['GOOGLE_PLAY_KEY_FILE_PATH'])
+  package_name(ENV['ANDROID_PACKAGE_NAME']) # 包名
+  json_key_file(ENV['GOOGLE_PLAY_KEY_FILE_PATH']) # api-json文件路径
 end
 
 for_platform :ios do
   app_identifier(ENV['IOS_APP_ID'])
 
-  apple_dev_portal_id(ENV['APPLE_DEVELOPER_EMAIL'])  # Apple Developer Account
-  itunes_connect_id(ENV['APPLE_CONNECT_EMAIL'])     # App Store Connect Account
+  apple_dev_portal_id(ENV['APPLE_DEVELOPER_EMAIL'])  # 苹果开发者账户
+  itunes_connect_id(ENV['APPLE_CONNECT_EMAIL'])     # App Store Connect 帐户
 
-  team_id(ENV['APPLE_TEAM_ID']) # Developer Portal Team ID
-  itc_team_id(ENV['APPLE_TEAM_ID']) # App Store Connect Team ID
+  team_id(ENV['APPLE_TEAM_ID']) # 开发人员门户团队 ID
+  itc_team_id(ENV['APPLE_TEAM_ID']) # App Store Connect 团队 ID
 end
 
 for_platform :mac do
   app_identifier(ENV['MAC_APP_ID'])
 
-  apple_dev_portal_id(ENV['APPLE_DEVELOPER_EMAIL'])  # Apple Developer Account
-  itunes_connect_id(ENV['APPLE_CONNECT_EMAIL'])     # App Store Connect Account
+  apple_dev_portal_id(ENV['APPLE_DEVELOPER_EMAIL'])  # 苹果开发者账户
+  itunes_connect_id(ENV['APPLE_CONNECT_EMAIL'])     # App Store Connect 帐户
 
-  team_id(ENV['APPLE_TEAM_ID']) # Developer Portal Team ID
-  itc_team_id(ENV['APPLE_TEAM_ID']) # App Store Connect Team ID
+  team_id(ENV['APPLE_TEAM_ID']) # 开发人员门户团队 ID
+  itc_team_id(ENV['APPLE_TEAM_ID']) # App Store Connect 团队 ID
 end

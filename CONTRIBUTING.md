@@ -1,3 +1,3 @@
-# Contributing
+# 贡献
 
-If you'd like to help out with the project, either join our [Discord](https://discord.gg/MdUHEUJCU4) or email <david@finoldigital.com>
+如果您想帮助该项目，请发送电子邮件至 <i.zuucol@gmail.com>
