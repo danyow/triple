@@ -13,27 +13,27 @@ on:
   workflow_dispatch:
     inputs:
       workflow_mode:
-        description: "[release] [Android, iOS, StandaloneOSX, StandaloneLinux64, WebGL, StandaloneWindows, WSAPlayer, StandaloneWindows64, Steam]"
+        description: "工作模式: [release] [Android, iOS, StandaloneOSX, StandaloneLinux64, WebGL, StandaloneWindows, WSAPlayer, StandaloneWindows64, Steam]"
         required: false
         default: "release, WebGL, Android"
       unity_environment:
-        description: "[Linux, Windows, Windows2]"
+        description: "构建环境: [Linux, Windows, Windows2]"
         required: false
         default: "Linux"
       quality_test:
-        description: "[true, false]"
+        description: "是否开启代码测试: [true, false]"
         required: false
         default: "false"
       product_short:
-        description: "short产品名"
+        description: "简称: triple"
         required: false
         default: "triple"
       product_full:
-        description: "全产品名"
+        description: "全产品名: Triple Game"
         required: false
         default: "Triple Game"
       product_trim:
-        description: "无空格产品名"
+        description: "无空格产品名: TripleGame"
         required: false
         default: "TripleGame"
 
