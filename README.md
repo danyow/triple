@@ -11,15 +11,15 @@ UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
 ## UNITY_EMAIL
 
-添加您用于登录 _Unity_ 的电子邮件地址
+用于登录和构建_Unity for Linux_ 时候, 你的 _Unity_ 的电子邮件地址
 
 ## UNITY_PASSWORD
 
-添加用于登录 _Unity_ 的密码
+用于登录和构建_Unity for Linux_ 时候, 你的 _Unity_ 的密码
 
 ## UNITY_SERIAL
 
-订阅了 _Unity Plus_ 或者 _Unity Pro_ 之后, 可以从[Unity 订阅页面](https://id.unity.com/en/subscriptions)获取密钥.
+如果你是订阅了 _Unity Plus_ 或者 _Unity Pro_ 之后, 那么直接可以从[Unity 订阅页面](https://id.unity.com/en/subscriptions)获取密钥.
 
 ## UNITY_LICENSE
 
@@ -64,16 +64,18 @@ UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
 ## ANDROID_KEYSTORE_BASE64
 
-其实也就是整个文件 _base64_ 处理
+将整个 `.keystore`文件 _base64_ 处理, 用于构建安卓包.
 
-### ~~ _windows_ 环境下使用[certutil](https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/certutil) ~~
+### ~~_windows_ 环境下使用~~
+
+[certutil][certutil]
 
 该方法并不适用
 
 1. ~~生成~~
-   ~~`certutil -encode release.keystore release.base64` 只需要复制里面的内容即可~~
-2. ~~验证~~
-   ~~`certutil -decode release.base64 release_decode.keystore`~~
+   `certutil -encode release.keystore release.base64` 只需要复制里面的内容即可
+2. ~~验证~~ 
+   `certutil -decode release.base64 release_decode.keystore`
 
 ### _linux_ 环境
 
@@ -86,25 +88,31 @@ UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
 ## ANDROID_KEYSTORE_PASS
 
-密钥库的密码
+keystore密钥中, 密钥库的密码
 
 ## ANDROID_KEYALIAS_NAME
 
-密钥的名称
+keystore密钥中, 密钥库中选中的密钥名称
 
 ## ANDROID_KEYALIAS_PASS
 
-密钥的密码
+keystore密钥中, 密钥库中选中的密钥密码
 
 ## GH_PERSONAL_ACCESS_TOKEN
 
-`Github` 的 **Personal access token**
+`Github` 的 **Personal access token**, 用来上传包到 `Github` 的发布页面
 
 ## UNITY_EMAIL_2
 
+用于登录和构建_Unity for Windows_ 时候, 你的 _Unity_ 的电子邮件地址
+
 ## UNITY_PASSWORD_2
 
+用于登录和构建_Unity for Windows_ 时候, 你的 _Unity_ 的密码
+
 ## UNITY_AUTHENTICATOR_KEY_2
+
+用于登录和构建_Unity for Windows_ 时候, 激活账号使用权限的密钥
 
 1. 登录 _Unity_ 帐户
 2. 转到帐户设置
@@ -135,3 +143,40 @@ UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 9. 然后底部就会出现一个新的服务账户 单击 _授予访问权_.
 10. 建议直接选择 _管理员(所有权限)_ → _邀请用户_ → _发送邀请_
 11. 完成.
+
+```yaml
+APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
+APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
+APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+APPLE_TEAM_NAME: ${{ secrets.APPLE_TEAM_NAME }}
+MATCH_URL: ${{ secrets.MATCH_URL }}
+MATCH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+APPSTORE_P8: ${{ secrets.APPSTORE_P8 }}
+USYM_UPLOAD_AUTH_TOKEN: ${{ secrets.USYM_UPLOAD_AUTH_TOKEN }}
+
+${{ secrets.MICROSOFT_STORE_PFX_FILE }}
+
+MICROSOFT_TENANT_ID: ${{ secrets.MICROSOFT_TENANT_ID }}
+MICROSOFT_CLIENT_ID: ${{ secrets.MICROSOFT_CLIENT_ID }}
+MICROSOFT_KEY: ${{ secrets.MICROSOFT_KEY }}
+
+username: ${{ secrets.STEAM_USERNAME }}
+password: ${{ secrets.STEAM_PASSWORD }}
+configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
+ssfnFileName: ${{ secrets.STEAM_SSFN_FILE_NAME }}
+ssfnFileContents: ${{ secrets.STEAM_SSFN_FILE_CONTENTS }}
+
+DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+```
+
+
+
+
+[certutil]: https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/certutil

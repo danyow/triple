@@ -251,7 +251,7 @@ jobs:
           unity-username: ${{ secrets.UNITY_EMAIL_2 }}
           unity-password: ${{ secrets.UNITY_PASSWORD_2 }}
           unity-authenticator-key: ${{ secrets.UNITY_AUTHENTICATOR_KEY_2 }}
-          unity-serial: ${{ secrets.UNITY_SERIAL_2 }}
+#          unity-serial: ${{ secrets.UNITY_SERIAL_2 }}
       - name: 构建Unity
         uses: kuler90/build-unity@v1
         with:
