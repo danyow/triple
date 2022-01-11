@@ -14,27 +14,27 @@ on:
     inputs:
       workflow_mode:
         description: "工作模式: [release] [Android, iOS, StandaloneOSX, StandaloneLinux64, WebGL, StandaloneWindows, WSAPlayer, StandaloneWindows64, Steam]"
-        required: false
+        required: true
         default: "release, WebGL, Android"
       unity_environment:
         description: "构建环境: [Linux, Windows, Windows2]"
-        required: false
+        required: true
         default: "Linux"
       quality_test:
         description: "是否开启代码测试: [true, false]"
-        required: false
+        required: true
         default: "false"
       product_short:
         description: "简称: triple"
-        required: false
+        required: true
         default: "triple"
       product_full:
         description: "全产品名: Triple Game"
-        required: false
+        required: true
         default: "Triple Game"
       product_trim:
         description: "无空格产品名: TripleGame"
-        required: false
+        required: true
         default: "TripleGame"
 
 jobs:
@@ -428,7 +428,7 @@ jobs:
           body: ${{ github.event.release.body }}
   
   releaseToGitHubPages:
-    name: 通过GitHubPages发布到Web🍻
+    name: 通过GitHubPages发布WebGL🍻
     runs-on: ubuntu-latest
     needs: buildWithLinux
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WebGL'))
@@ -451,6 +451,34 @@ jobs:
           branch: main
           file_pattern: docs/**
           commit_message: 部署到GitHubPages
+  
+  releaseToSite:
+    name: 同时发布到个人站点🍻
+    runs-on: ubuntu-latest
+    needs: buildWithLinux
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WebGL'))
+    steps:
+      - name: 获取代码存储库
+        uses: actions/checkout@v2
+        with:
+          repository: danyow/danyow
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN_FULL }}
+      - name: 下载WebGL构建包
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ github.event.inputs.product_short }}-WebGL
+          path: temp/WebGL
+      - name: 将WebGL构建包复制到build目录
+        env:
+          WEBGL_BUILD_PATH: ${{ format('{0}/temp/WebGL', github.workspace) }}
+          WEBGL_PAGES_PATH: ${{ format('{0}/build/WebGL', github.workspace) }}
+        run: find $WEBGL_BUILD_PATH -type f -name "**WebGL.*" -exec cp {} $WEBGL_PAGES_PATH \;
+      - name: 部署到个人站点
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          branch: main
+          file_pattern: build/**
+          commit_message: 部署到个人站点
   
   releaseToMicrosoftStore:
     name: 发行到MicrosoftStore🍻

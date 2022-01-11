@@ -74,7 +74,7 @@ UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
 1. ~~生成~~
    `certutil -encode release.keystore release.base64` 只需要复制里面的内容即可
-2. ~~验证~~ 
+2. ~~验证~~
    `certutil -decode release.base64 release_decode.keystore`
 
 ### _linux_ 环境
@@ -101,6 +101,11 @@ keystore密钥中, 密钥库中选中的密钥密码
 ## GH_PERSONAL_ACCESS_TOKEN
 
 `Github` 的 **Personal access token**, 用来上传包到 `Github` 的发布页面
+
+## GH_PERSONAL_ACCESS_TOKEN_FULL
+
+`Github` 的 **Personal access token**, 用来上传内容到 `Github` 
+
 
 ## UNITY_EMAIL_2
 
@@ -145,19 +150,33 @@ keystore密钥中, 密钥库中选中的密钥密码
 11. 完成.
 
 ```yaml
-APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
-APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
-APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-APPLE_TEAM_NAME: ${{ secrets.APPLE_TEAM_NAME }}
-MATCH_URL: ${{ secrets.MATCH_URL }}
-MATCH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-APPSTORE_P8: ${{ secrets.APPSTORE_P8 }}
-USYM_UPLOAD_AUTH_TOKEN: ${{ secrets.USYM_UPLOAD_AUTH_TOKEN }}
+ios:
+  APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
+  APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
+  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+  APPLE_TEAM_NAME: ${{ secrets.APPLE_TEAM_NAME }}
+  MATCH_URL: ${{ secrets.MATCH_URL }}
+  MATCH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+  MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+  APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+  APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+  APPSTORE_P8: ${{ secrets.APPSTORE_P8 }}
+  USYM_UPLOAD_AUTH_TOKEN: ${{ secrets.USYM_UPLOAD_AUTH_TOKEN }}
 
-${{ secrets.MICROSOFT_STORE_PFX_FILE }}
+mac:
+  APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
+  APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
+  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+  APPLE_TEAM_NAME: ${{ secrets.APPLE_TEAM_NAME }}
+  APPLE_DISTRIBUTION_CERTIFICATE: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE }}
+  APPLE_DISTRIBUTION_PASSWORD: ${{ secrets.APPLE_DISTRIBUTION_PASSWORD }}
+  MAC_INSTALLER_CERTIFICATE: ${{ secrets.MAC_INSTALLER_CERTIFICATE }}
+  MAC_INSTALLER_PASSWORD: ${{ secrets.MAC_INSTALLER_PASSWORD }}
+  APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+  APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+  APPSTORE_P8: ${{ secrets. APPSTORE_P8 }}
+
+  ${{ secrets.MICROSOFT_STORE_PFX_FILE }}
 
 MICROSOFT_TENANT_ID: ${{ secrets.MICROSOFT_TENANT_ID }}
 MICROSOFT_CLIENT_ID: ${{ secrets.MICROSOFT_CLIENT_ID }}
@@ -175,8 +194,5 @@ consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
 access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
 access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
 ```
-
-
-
 
 [certutil]: https://docs.microsoft.com/zh-cn/windows-server/administration/windows-commands/certutil
