@@ -463,6 +463,7 @@ jobs:
         with:
           repository: danyow/danyow
           token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN_FULL }}
+          ref: gh-pages
       - name: 下载WebGL构建包
         uses: actions/download-artifact@v2
         with:
@@ -476,7 +477,7 @@ jobs:
       - name: 部署到个人站点
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          branch: main
+          branch: gh-pages
           file_pattern: build/**
           commit_message: 部署到个人站点
   
