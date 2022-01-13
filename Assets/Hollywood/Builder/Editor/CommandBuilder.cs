@@ -1,4 +1,3 @@
-using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +21,7 @@ namespace Hollywood.Builder.Editor
         private static readonly string[] Secrets =
             {"androidKeystorePass", "androidKeyaliasName", "androidKeyaliasPass"};
 
-        private static Dictionary<string, string> Defaults = new Dictionary<string, string> {
+        private static readonly Dictionary<string, string> Defaults = new() {
             { "projectPath", Environment.CurrentDirectory },
             { "buildTarget", BuildTarget.Android.ToString() },
             { "customBuildPath", $"build/{BuildTarget.Android.ToString()}" },
@@ -79,7 +78,7 @@ namespace Hollywood.Builder.Editor
                 case BuildTarget.StandaloneWindows:
                 case BuildTarget.StandaloneWindows64:
                     if (!options["customBuildPath"].EndsWith(".exe"))
-                        options["customBuildPath"] = options["customBuildPath"] + "/triple.exe";
+                        options["customBuildPath"] += "/triple.exe";
                     break;
                 case BuildTarget.WSAPlayer:
                     EditorUserBuildSettings.wsaUWPBuildType = WSAUWPBuildType.XAML;
