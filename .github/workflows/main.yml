@@ -472,13 +472,13 @@ jobs:
       - name: 将WebGL构建包复制到build目录
         env:
           WEBGL_BUILD_PATH: ${{ format('{0}/temp/WebGL', github.workspace) }}
-          WEBGL_PAGES_PATH: ${{ format('{0}/build/WebGL', github.workspace) }}
+          WEBGL_PAGES_PATH: ${{ format('{0}/WebGL', github.workspace) }}
         run: find $WEBGL_BUILD_PATH -type f -name "**WebGL.*" -exec cp {} $WEBGL_PAGES_PATH \;
       - name: 部署到个人站点
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           branch: gh-pages
-          file_pattern: build/**
+          file_pattern: WebGL/**
           commit_message: 部署到个人站点
   
   releaseToMicrosoftStore:
