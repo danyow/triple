@@ -445,23 +445,23 @@ jobs:
           ls
           tree
           cat build/WebGL/WebGL/index.html
-      - name: 替换内容 ${{ needs.buildWithLinux.outputs.targetPlatform }} 的路径
-        uses: jacobtomlinson/gha-find-replace@v2
-        with:
-          find: 'var buildUrl = "Build";'
-          replace: 'var buildUrl = "WebGL/Build";'
-          include: "build/WebGL/WebGL/index.html"
-      - name: 替换内容 ${{ needs.buildWithLinux.outputs.targetPlatform }} 的路径
-        uses: jacobtomlinson/gha-find-replace@v2
-        with:
-          find: 'href="TemplateData/'
-          replace: 'href="WebGL/TemplateData/'
-          include: "build/WebGL/WebGL/index.html"
-      - name: 查看替换后的内容
-        run: |
-          ls
-          tree
-          cat build/WebGL/WebGL/index.html
+#      - name: 替换内容 ${{ needs.buildWithLinux.outputs.targetPlatform }} 的路径
+#        uses: jacobtomlinson/gha-find-replace@v2
+#        with:
+#          find: 'var buildUrl = "Build";'
+#          replace: 'var buildUrl = "WebGL/Build";'
+#          include: "build/WebGL/WebGL/index.html"
+#      - name: 替换内容 ${{ needs.buildWithLinux.outputs.targetPlatform }} 的路径
+#        uses: jacobtomlinson/gha-find-replace@v2
+#        with:
+#          find: 'href="TemplateData/'
+#          replace: 'href="WebGL/TemplateData/'
+#          include: "build/WebGL/WebGL/index.html"
+#      - name: 查看替换后的内容
+#        run: |
+#          ls
+#          tree
+#          cat build/WebGL/WebGL/index.html
       - name: 重新上传构建结果
         uses: actions/upload-artifact@v2
         if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, needs.buildWithLinux.outputs.targetPlatform)
