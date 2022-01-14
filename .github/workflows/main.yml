@@ -440,6 +440,9 @@ jobs:
         with:
           name: ${{ github.event.inputs.product_short }}-${{ needs.buildWithLinux.outputs.targetPlatform }}
           path: build/${{ needs.buildWithLinux.outputs.targetPlatform }}
+      - name: 查看替换前的内容
+        run: |
+          cat build/WebGL/index.html
       - name: 替换内容 ${{ needs.buildWithLinux.outputs.targetPlatform }} 的路径
         uses: jacobtomlinson/gha-find-replace@v2
         with:
@@ -452,6 +455,9 @@ jobs:
           find: 'href="TemplateData/'
           replace: 'href="WebGL/TemplateData/'
           include: "build/WebGL/index.html"
+      - name: 查看替换后的内容
+        run: |
+          cat build/WebGL/index.html
       - name: 重新上传构建结果
         uses: actions/upload-artifact@v2
         if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, needs.buildWithLinux.outputs.targetPlatform)
@@ -467,7 +473,7 @@ jobs:
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
-        with: 
+        with:
           ref: main
       - name: 下载WebGL构建包
         uses: actions/download-artifact@v2
