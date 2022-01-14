@@ -467,6 +467,8 @@ jobs:
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
+        with: 
+          ref: main
       - name: 下载WebGL构建包
         uses: actions/download-artifact@v2
         with:
