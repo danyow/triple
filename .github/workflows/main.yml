@@ -85,7 +85,7 @@ jobs:
       fail-fast: false
       matrix:
         targetPlatform:
-          - Android
+          # - Android
           # - iOS
           # - StandaloneOSX
           # - StandaloneLinux64
@@ -469,6 +469,10 @@ jobs:
         with:
           name: ${{ github.event.inputs.product_short }}-WebGL
           path: temp/WebGL
+      - name: 查看路径内容
+        run: |
+          ls
+          tree
       - name: 将WebGL构建包复制到build目录
         env:
           WEBGL_BUILD_PATH: ${{ format('{0}/temp/WebGL', github.workspace) }}
