@@ -285,7 +285,7 @@ jobs:
     name: 发行到谷歌商店🍻
     runs-on: ubuntu-latest
     needs: buildWithLinux
-    if: (github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Android'))) && ${{needs.buildWithLinux.outputs.targetPlatform}}
+    if: (github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Android'))) && ${{needs.buildWithLinux.outputs.targetPlatform}} == 'Android'
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -469,7 +469,7 @@ jobs:
         with:
           name: ${{ github.event.inputs.product_short }}-WebGL
           path: temp/WebGL
-      - name: 查看路径内容
+      - name: 查看下载前的路径内容
         run: |
           ls
           tree
@@ -478,7 +478,11 @@ jobs:
           WEBGL_BUILD_PATH: ${{ format('{0}/temp/WebGL', github.workspace) }}
           WEBGL_PAGES_PATH: ${{ format('{0}/WebGL', github.workspace) }}
         run: find $WEBGL_BUILD_PATH -type f -name "**WebGL.*" -exec cp {} $WEBGL_PAGES_PATH \;
-      - name: 部署到个人站点
+      - name: 查看下载后的路径内容
+        run: |
+          ls
+          tree
+      - name: 提交到个人站点
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           branch: gh-pages
