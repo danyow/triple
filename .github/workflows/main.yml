@@ -251,7 +251,7 @@ jobs:
           unity-username: ${{ secrets.UNITY_EMAIL_2 }}
           unity-password: ${{ secrets.UNITY_PASSWORD_2 }}
           unity-authenticator-key: ${{ secrets.UNITY_AUTHENTICATOR_KEY_2 }}
-#          unity-serial: ${{ secrets.UNITY_SERIAL_2 }}
+      #          unity-serial: ${{ secrets.UNITY_SERIAL_2 }}
       - name: 构建Unity
         uses: kuler90/build-unity@v1
         with:
@@ -285,7 +285,7 @@ jobs:
     name: 发行到谷歌商店🍻
     runs-on: ubuntu-latest
     needs: buildWithLinux
-    if: (github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Android'))) && ${{needs.buildWithLinux.outputs.targetPlatform}} == 'Android'
+    if: (github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Android'))) && needs.buildWithLinux.outputs.targetPlatform == 'Android'
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -427,10 +427,42 @@ jobs:
           overwrite: true
           body: ${{ github.event.release.body }}
   
+  readyReleaseWebGL:
+    name: 在发布WebGL之前的准备🔧
+    runs-on: ubuntu-latest
+    needs: buildWithLinux
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WebGL'))
+    steps:
+      - name: 获取代码存储库
+        uses: actions/checkout@v2
+      - name: 下载 ${{ needs.buildWithLinux.outputs.targetPlatform }} 构建包
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ github.event.inputs.product_short }}-${{ needs.buildWithLinux.outputs.targetPlatform }}
+          path: build/${{ needs.buildWithLinux.outputs.targetPlatform }}
+      - name: 替换内容 ${{ needs.buildWithLinux.outputs.targetPlatform }} 的路径
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: 'var buildUrl = "Build";'
+          replace: 'var buildUrl = "WebGL/Build";'
+          include: "build/WebGL/index.html"
+      - name: 替换内容 ${{ needs.buildWithLinux.outputs.targetPlatform }} 的路径
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: 'href="TemplateData/'
+          replace: 'href="WebGL/TemplateData/'
+          include: "build/WebGL/index.html"
+      - name: 重新上传构建结果
+        uses: actions/upload-artifact@v2
+        if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, needs.buildWithLinux.outputs.targetPlatform)
+        with:
+          name: ${{ github.event.inputs.product_short }}-${{ needs.buildWithLinux.outputs.targetPlatform }}
+          path: build/${{ needs.buildWithLinux.outputs.targetPlatform }}
+  
   releaseToGitHubPages:
     name: 通过GitHubPages发布WebGL🍻
     runs-on: ubuntu-latest
-    needs: buildWithLinux
+    needs: readyReleaseWebGL
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WebGL'))
     steps:
       - name: 获取代码存储库
@@ -439,12 +471,11 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ${{ github.event.inputs.product_short }}-WebGL
-          path: build/WebGL
-      - name: 将WebGL构建包复制到GitHubPages目录
-        env:
-          WEBGL_BUILD_PATH: ${{ format('{0}/build/WebGL', github.workspace) }}
-          WEBGL_PAGES_PATH: ${{ format('{0}/docs/WebGL', github.workspace) }}
-        run: find $WEBGL_BUILD_PATH -type f -name "**WebGL.*" -exec cp {} $WEBGL_PAGES_PATH \;
+          path: docs
+      - name: 查看下载后的内容
+        run: |
+          ls
+          tree
       - name: 部署到GitHubPages
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
@@ -455,7 +486,7 @@ jobs:
   releaseToSite:
     name: 同时发布到个人站点🍻
     runs-on: ubuntu-latest
-    needs: buildWithLinux
+    needs: readyReleaseWebGL
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WebGL'))
     steps:
       - name: 获取代码存储库
@@ -468,16 +499,10 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ${{ github.event.inputs.product_short }}-WebGL
-          path: temp/WebGL
       - name: 查看下载前的路径内容
         run: |
           ls
           tree
-      - name: 将WebGL构建包复制到build目录
-        env:
-          WEBGL_BUILD_PATH: ${{ format('{0}/temp/WebGL', github.workspace) }}
-          WEBGL_PAGES_PATH: ${{ format('{0}/WebGL', github.workspace) }}
-        run: find $WEBGL_BUILD_PATH -type f -name "**WebGL.*" -exec cp {} $WEBGL_PAGES_PATH \;
       - name: 查看下载后的路径内容
         run: |
           ls
