@@ -10,33 +10,28 @@ on:
   release:
     types:
       - published
-  workflow_call: 
+  workflow_dispatch:
     inputs:
       workflow_mode:
         description: "工作模式: [release] [Android, iOS, StandaloneOSX, StandaloneLinux64, WebGL, StandaloneWindows, WSAPlayer, StandaloneWindows64, Steam]"
         required: true
         default: "release, WebGL, Android"
-        type: string
       unity_environment:
         description: "构建环境: [Linux, Windows, Windows2]"
         required: true
         default: "Linux"
-        type: string
       quality_test:
         description: "是否开启代码测试: [true, false]"
         required: true
         default: "false"
-        type: boolean
       product_full:
         description: "全产品名: Triple Game"
         required: true
         default: "Triple Game"
-        type: string
       product_trim:
         description: "无空格产品名: TripleGame"
         required: true
         default: "TripleGame"
-        type: string
 
 jobs:
   tests:
@@ -54,7 +49,7 @@ jobs:
           key: Library-test-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: Library-test-
       - name: 运行单元测试
-        if: contains(inputs.quality_test, 'true')
+        if: contains(github.event.inputs.quality_test, 'true')
         uses: game-ci/unity-test-runner@main
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -91,7 +86,7 @@ jobs:
           # - StandaloneOSX
           # - StandaloneLinux64
           - WebGL
-    if: contains(inputs.unity_environment, 'Linux')
+    if: contains(github.event.inputs.unity_environment, 'Linux')
     outputs:
       targetPlatform: ${{ matrix.targetPlatform }}
     steps:
@@ -138,7 +133,7 @@ jobs:
           androidTargetSdkVersion: AndroidApiLevel31
       - name: 上传构建结果
         uses: actions/upload-artifact@v2
-        if: github.event.action == 'published' || contains(inputs.workflow_mode, 'release') || contains(inputs.workflow_mode, matrix.targetPlatform) || (contains(inputs.workflow_mode, 'Steam') && matrix.targetPlatform == 'StandaloneLinux64')
+        if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, matrix.targetPlatform) || (contains(github.event.inputs.workflow_mode, 'Steam') && matrix.targetPlatform == 'StandaloneLinux64')
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
@@ -168,7 +163,7 @@ jobs:
         targetPlatform:
           - StandaloneWindows
           # - WSAPlayer
-    if: contains(inputs.unity_environment, 'Windows')
+    if: contains(github.event.inputs.unity_environment, 'Windows')
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -205,7 +200,7 @@ jobs:
           build-version: ${{ steps.versioning.outputs.version }}
       - name: 上传构建结果
         uses: actions/upload-artifact@v2
-        if: github.event.action == 'published' || contains(inputs.workflow_mode, 'release') || contains(inputs.workflow_mode, matrix.targetPlatform) || (contains(inputs.workflow_mode, 'Steam') && matrix.targetPlatform == 'StandaloneWindows64')
+        if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, matrix.targetPlatform) || (contains(github.event.inputs.workflow_mode, 'Steam') && matrix.targetPlatform == 'StandaloneWindows64')
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
@@ -230,7 +225,7 @@ jobs:
     name: 为 StandaloneWindows64 平台构建 🍳
     runs-on: windows-latest
     needs: buildWithWindows
-    if: (github.event.action == 'published' || contains(inputs.workflow_mode, 'release') || contains(inputs.workflow_mode, 'StandaloneWindows64') || contains(inputs.workflow_mode, 'Steam')) && contains(inputs.unity_environment, 'Windows2')
+    if: (github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, 'StandaloneWindows64') || contains(github.event.inputs.workflow_mode, 'Steam')) && contains(github.event.inputs.unity_environment, 'Windows2')
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -286,7 +281,7 @@ jobs:
     name: 发行到谷歌商店🍻
     runs-on: ubuntu-latest
     needs: buildWithLinux
-    if: (github.event.action == 'published' || (contains(inputs.workflow_mode, 'release') && contains(inputs.workflow_mode, 'Android'))) && needs.buildWithLinux.outputs.targetPlatform == 'Android'
+    if: (github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Android'))) && needs.buildWithLinux.outputs.targetPlatform == 'Android'
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -323,7 +318,7 @@ jobs:
     name: 发行到AppStore🍻
     runs-on: macos-latest
     needs: buildWithLinux
-    if: github.event.action == 'published' || (contains(inputs.workflow_mode, 'release') && contains(inputs.workflow_mode, 'iOS'))
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'iOS'))
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -352,7 +347,7 @@ jobs:
           USYM_UPLOAD_AUTH_TOKEN: ${{ secrets.USYM_UPLOAD_AUTH_TOKEN }}
           IOS_APP_ID: com.halfmillion.${{ github.event.repository.name }}
           IOS_BUILD_PATH: ${{ format('{0}/build/iOS', github.workspace) }}
-          PROJECT_NAME: ${{ inputs.product_full }}
+          PROJECT_NAME: ${{ github.event.inputs.product_full }}
         run: |
           find $IOS_BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
           find $IOS_BUILD_PATH -type f -iname "usymtool" -exec chmod +x {} \;
@@ -380,8 +375,8 @@ jobs:
       MAC_APP_BUNDLE_PATHS: Contents/PlugIns/StandaloneFileBrowser.bundle
       MAC_APP_ID: com.halfmillion.${{ github.event.repository.name }}
       MAC_BUILD_PATH: ${{ format('{0}/build/StandaloneOSX', github.workspace) }}
-      PROJECT_NAME: ${{ inputs.product_full }}
-    if: github.event.action == 'published' || (contains(inputs.workflow_mode, 'release') && (contains(inputs.workflow_mode, 'StandaloneOSX') || contains(inputs.workflow_mode, 'Steam')))
+      PROJECT_NAME: ${{ github.event.inputs.product_full }}
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && (contains(github.event.inputs.workflow_mode, 'StandaloneOSX') || contains(github.event.inputs.workflow_mode, 'Steam')))
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -403,14 +398,14 @@ jobs:
           chmod +x fastlane/sign-mac-build.sh
           ./fastlane/sign-mac-build.sh
       - name: 运行fastlane
-        if: github.event.action == 'published' || (contains(inputs.workflow_mode, 'release') && contains(inputs.workflow_mode, 'StandaloneOSX'))
+        if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'StandaloneOSX'))
         run: bundle exec fastlane mac macupload
       - name: 上传构建结果
         uses: actions/upload-artifact@v2
-        if: github.event.action == 'published' || (contains(inputs.workflow_mode, 'release') && contains(inputs.workflow_mode, 'Steam'))
+        if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Steam'))
         with:
-          name: ${{ inputs.product_full }}.app
-          path: build/StandaloneOSX/${{ inputs.product_full }}.app
+          name: ${{ github.event.inputs.product_full }}.app
+          path: build/StandaloneOSX/${{ github.event.inputs.product_full }}.app
       - name: 打包App
         uses: vimtor/action-zip@v1
         if: github.event.action == 'published'
@@ -432,7 +427,7 @@ jobs:
     name: 在发布WebGL之前的准备🔧
     runs-on: ubuntu-latest
     needs: buildWithLinux
-    if: github.event.action == 'published' || (contains(inputs.workflow_mode, 'release') && contains(inputs.workflow_mode, 'WebGL'))
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WebGL'))
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -465,7 +460,7 @@ jobs:
 #          cat build/WebGL/WebGL/index.html
       - name: 重新上传构建结果
         uses: actions/upload-artifact@v2
-        if: github.event.action == 'published' || contains(inputs.workflow_mode, 'release') || contains(inputs.workflow_mode, needs.buildWithLinux.outputs.targetPlatform)
+        if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, needs.buildWithLinux.outputs.targetPlatform)
         with:
           name: ${{ github.event.repository.name }}-${{ needs.buildWithLinux.outputs.targetPlatform }}
           path: build/${{ needs.buildWithLinux.outputs.targetPlatform }}
@@ -474,7 +469,7 @@ jobs:
     name: 通过GitHubPages发布WebGL🍻
     runs-on: ubuntu-latest
     needs: readyReleaseWebGL
-    if: github.event.action == 'published' || (contains(inputs.workflow_mode, 'release') && contains(inputs.workflow_mode, 'WebGL'))
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WebGL'))
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -511,7 +506,7 @@ jobs:
     name: 同时发布到个人站点🍻
     runs-on: ubuntu-latest
     needs: readyReleaseWebGL
-    if: github.event.action == 'published' || (contains(inputs.workflow_mode, 'release') && contains(inputs.workflow_mode, 'WebGL'))
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WebGL'))
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -543,10 +538,10 @@ jobs:
     name: 发行到MicrosoftStore🍻
     runs-on: windows-latest
     needs: buildWithWindows
-    if: github.event.action == 'published' || (contains(inputs.workflow_mode, 'release') && contains(inputs.workflow_mode, 'WSAPlayer'))
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'WSAPlayer'))
     env:
-      Wap_Project_Directory: build\WSAPlayer\${{ inputs.product_full }}
-      SigningCertificate: ${{ inputs.product_full }}_StoreKey.pfx
+      Wap_Project_Directory: build\WSAPlayer\${{ github.event.inputs.product_full }}
+      SigningCertificate: ${{ github.event.inputs.product_full }}_StoreKey.pfx
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -577,17 +572,17 @@ jobs:
       - name: Remove spaces from project name
         uses: davidmfinol/replace-action@master
         with:
-          files: "build/WSAPlayer/${{ inputs.product_full }}.sln"
-          replacements: '"${{ inputs.product_full }}"="${{ inputs.product_trim }}"'
+          files: "build/WSAPlayer/${{ github.event.inputs.product_full }}.sln"
+          replacements: '"${{ github.event.inputs.product_full }}"="${{ github.event.inputs.product_trim }}"'
       - name: 从项目名称中删除空格
         uses: davidmfinol/replace-action@master
         with:
-          files: "build/WSAPlayer/${{ inputs.product_full }}/${{ inputs.product_full }}.vcxproj"
-          replacements: "</PropertyGroup>=<ProjectName>${{ inputs.product_trim }}</ProjectName></PropertyGroup>"
+          files: "build/WSAPlayer/${{ github.event.inputs.product_full }}/${{ github.event.inputs.product_full }}.vcxproj"
+          replacements: "</PropertyGroup>=<ProjectName>${{ github.event.inputs.product_trim }}</ProjectName></PropertyGroup>"
       - name: 还原Wpf应用程序以填充obj文件夹
         shell: pwsh
         env:
-          SolutionPath: build\WSAPlayer\${{ inputs.product_full }}.sln
+          SolutionPath: build\WSAPlayer\${{ github.event.inputs.product_full }}.sln
           Configuration: Master
           RuntimeIdentifier: win-x64
         run: msbuild $env:SolutionPath /t:Restore /p:Configuration=$env:Configuration /p:RuntimeIdentifier=$env:RuntimeIdentifier
@@ -601,7 +596,7 @@ jobs:
       - name: 构建.appxupload
         shell: pwsh
         env:
-          SolutionPath: build\WSAPlayer\${{ inputs.product_full }}.sln
+          SolutionPath: build\WSAPlayer\${{ github.event.inputs.product_full }}.sln
           Configuration: Master
           TargetPlatform: x64
           BuildMode: StoreUpload
@@ -640,7 +635,7 @@ jobs:
           STOREBROKER_CONFIG_PATH: ${{ format('{0}\storebroker\SBConfig.json', github.workspace) }}
           PDP_ROOT_PATH: ${{ format('{0}\storebroker\', github.workspace) }}
           IMAGES_ROOT_PATH: ${{ format('{0}\docs\assets\img\', github.workspace) }}
-          APPX_PATH: ${{ format('{0}\build\WSAPlayer\AppPackages\${{ inputs.product_trim }}\${{ inputs.product_trim }}_{1}.0_x64_bundle_Master.appxupload', github.workspace, steps.versioning.outputs.version) }}
+          APPX_PATH: ${{ format('{0}\build\WSAPlayer\AppPackages\${{ github.event.inputs.product_trim }}\${{ github.event.inputs.product_trim }}_{1}.0_x64_bundle_Master.appxupload', github.workspace, steps.versioning.outputs.version) }}
           OUT_PATH: ${{ format('{0}\build\WSAPlayer\', github.workspace) }}
           SUBMISSION_DATA_PATH: ${{ format('{0}\build\WSAPlayer\upload.json', github.workspace) }}
           PACKAGE_PATH: ${{ format('{0}\build\WSAPlayer\upload.zip', github.workspace) }}
@@ -664,7 +659,7 @@ jobs:
           buildWithWindows2,
           releaseToMacAppStore,
       ]
-    if: github.event.action == 'published' || (contains(inputs.workflow_mode, 'release') && contains(inputs.workflow_mode, 'Steam'))
+    if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && contains(github.event.inputs.workflow_mode, 'Steam'))
     steps:
       - name: 获取代码存储库
         uses: actions/checkout@v2
@@ -688,8 +683,8 @@ jobs:
       - name: 下载App
         uses: actions/download-artifact@v2
         with:
-          name: ${{ inputs.product_full }}.app
-          path: build/StandaloneOSX/${{ inputs.product_full }}.app
+          name: ${{ github.event.inputs.product_full }}.app
+          path: build/StandaloneOSX/${{ github.event.inputs.product_full }}.app
       - name: 获取版本
         id: versioning
         uses: paulhatch/semantic-version@v4.0.2
