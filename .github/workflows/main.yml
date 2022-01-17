@@ -24,10 +24,6 @@ on:
         description: "是否开启代码测试: [true, false]"
         required: true
         default: "false"
-      product_short:
-        description: "简称: triple"
-        required: true
-        default: "triple"
       product_full:
         description: "全产品名: Triple Game"
         required: true
@@ -139,20 +135,20 @@ jobs:
         uses: actions/upload-artifact@v2
         if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, matrix.targetPlatform) || (contains(github.event.inputs.workflow_mode, 'Steam') && matrix.targetPlatform == 'StandaloneLinux64')
         with:
-          name: ${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}
+          name: ${{ github.event.repository.name }}-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
       - name: 压缩构建结果
         uses: montudor/action-zip@v1
         if: github.event.action == 'published' && matrix.targetPlatform == 'StandaloneLinux64'
         with:
-          args: zip -qq -r build/${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}.zip build/${{ matrix.targetPlatform }}
+          args: zip -qq -r build/${{ github.event.repository.name }}-${{ matrix.targetPlatform }}.zip build/${{ matrix.targetPlatform }}
       - name: 上传压缩包到Github发布页
         uses: svenstaro/upload-release-action@v2
         if: github.event.action == 'published' && matrix.targetPlatform == 'StandaloneLinux64'
         with:
           repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          asset_name: ${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}.zip
-          file: build/${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}.zip
+          asset_name: ${{ github.event.repository.name }}-${{ matrix.targetPlatform }}.zip
+          file: build/${{ github.event.repository.name }}-${{ matrix.targetPlatform }}.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: ${{ github.event.release.body }}
@@ -206,21 +202,21 @@ jobs:
         uses: actions/upload-artifact@v2
         if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, matrix.targetPlatform) || (contains(github.event.inputs.workflow_mode, 'Steam') && matrix.targetPlatform == 'StandaloneWindows64')
         with:
-          name: ${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}
+          name: ${{ github.event.repository.name }}-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
       - name: 压缩构建结果
         uses: vimtor/action-zip@v1
         if: github.event.action == 'published' && matrix.targetPlatform != 'WSAPlayer'
         with:
           files: build/${{ matrix.targetPlatform }}/
-          dest: build/${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}.zip
+          dest: build/${{ github.event.repository.name }}-${{ matrix.targetPlatform }}.zip
       - name: 上传压缩包到Github发布页
         uses: svenstaro/upload-release-action@v2
         if: github.event.action == 'published' && matrix.targetPlatform != 'WSAPlayer'
         with:
           repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          asset_name: ${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}.zip
-          file: build/${{ github.event.inputs.product_short }}-${{ matrix.targetPlatform }}.zip
+          asset_name: ${{ github.event.repository.name }}-${{ matrix.targetPlatform }}.zip
+          file: build/${{ github.event.repository.name }}-${{ matrix.targetPlatform }}.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: ${{ github.event.release.body }}
@@ -262,21 +258,21 @@ jobs:
       - name: 上传构建结果
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.event.inputs.product_short }}-StandaloneWindows64
+          name: ${{ github.event.repository.name }}-StandaloneWindows64
           path: build/StandaloneWindows64
       - name: 压缩构建结果
         uses: vimtor/action-zip@v1
         if: github.event.action == 'published'
         with:
           files: build/StandaloneWindows64/
-          dest: build/${{ github.event.inputs.product_short }}-StandaloneWindows64.zip
+          dest: build/${{ github.event.repository.name }}-StandaloneWindows64.zip
       - name: 上传压缩包到Github发布页
         uses: svenstaro/upload-release-action@v2
         if: github.event.action == 'published'
         with:
           repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          asset_name: ${{ github.event.inputs.product_short }}-StandaloneWindows64.zip
-          file: build/${{ github.event.inputs.product_short }}-StandaloneWindows64.zip
+          asset_name: ${{ github.event.repository.name }}-StandaloneWindows64.zip
+          file: build/${{ github.event.repository.name }}-StandaloneWindows64.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: ${{ github.event.release.body }}
@@ -292,7 +288,7 @@ jobs:
       - name: 下载安卓构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ github.event.inputs.product_short }}-Android
+          name: ${{ github.event.repository.name }}-Android
           path: build/Android
       - name: 更新发行说明
         if: github.event.action == 'published'
@@ -313,7 +309,7 @@ jobs:
         env:
           GOOGLE_PLAY_KEY_FILE_PATH: ${{ format('{0}/fastlane/api-halfmillion.json', github.workspace) }}
           ANDROID_BUILD_FILE_PATH: ${{ format('{0}/build/Android/Android.aab', github.workspace) }}
-          ANDROID_PACKAGE_NAME: com.halfmillion.${{ github.event.inputs.product_short }}
+          ANDROID_PACKAGE_NAME: com.halfmillion.${{ github.event.repository.name }}
         uses: maierj/fastlane-action@v2.0.1
         with:
           lane: "android internal"
@@ -329,7 +325,7 @@ jobs:
       - name: 下载iOS构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ github.event.inputs.product_short }}-iOS
+          name: ${{ github.event.repository.name }}-iOS
           path: build/iOS
       - name: 更新发行说明
         if: github.event.action == 'published'
@@ -349,7 +345,7 @@ jobs:
           APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
           APPSTORE_P8: ${{ secrets.APPSTORE_P8 }}
           USYM_UPLOAD_AUTH_TOKEN: ${{ secrets.USYM_UPLOAD_AUTH_TOKEN }}
-          IOS_APP_ID: com.halfmillion.${{ github.event.inputs.product_short }}
+          IOS_APP_ID: com.halfmillion.${{ github.event.repository.name }}
           IOS_BUILD_PATH: ${{ format('{0}/build/iOS', github.workspace) }}
           PROJECT_NAME: ${{ github.event.inputs.product_full }}
         run: |
@@ -377,7 +373,7 @@ jobs:
       APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
       APPSTORE_P8: ${{ secrets. APPSTORE_P8 }}
       MAC_APP_BUNDLE_PATHS: Contents/PlugIns/StandaloneFileBrowser.bundle
-      MAC_APP_ID: com.halfmillion.${{ github.event.inputs.product_short }}
+      MAC_APP_ID: com.halfmillion.${{ github.event.repository.name }}
       MAC_BUILD_PATH: ${{ format('{0}/build/StandaloneOSX', github.workspace) }}
       PROJECT_NAME: ${{ github.event.inputs.product_full }}
     if: github.event.action == 'published' || (contains(github.event.inputs.workflow_mode, 'release') && (contains(github.event.inputs.workflow_mode, 'StandaloneOSX') || contains(github.event.inputs.workflow_mode, 'Steam')))
@@ -387,7 +383,7 @@ jobs:
       - name: 下载StandaloneOSX构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ github.event.inputs.product_short }}-StandaloneOSX
+          name: ${{ github.event.repository.name }}-StandaloneOSX
           path: build/StandaloneOSX
       - name: 更新发行说明
         if: github.event.action == 'published'
@@ -415,14 +411,14 @@ jobs:
         if: github.event.action == 'published'
         with:
           files: build/StandaloneOSX/
-          dest: build/${{ github.event.inputs.product_short }}-StandaloneOSX.zip
+          dest: build/${{ github.event.repository.name }}-StandaloneOSX.zip
       - name: 上传压缩包到Github发布页
         uses: svenstaro/upload-release-action@v2
         if: github.event.action == 'published'
         with:
           repo_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          asset_name: ${{ github.event.inputs.product_short }}-StandaloneOSX.zip
-          file: build/${{ github.event.inputs.product_short }}-StandaloneOSX.zip
+          asset_name: ${{ github.event.repository.name }}-StandaloneOSX.zip
+          file: build/${{ github.event.repository.name }}-StandaloneOSX.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: ${{ github.event.release.body }}
@@ -438,7 +434,7 @@ jobs:
       - name: 下载 ${{ needs.buildWithLinux.outputs.targetPlatform }} 构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ github.event.inputs.product_short }}-${{ needs.buildWithLinux.outputs.targetPlatform }}
+          name: ${{ github.event.repository.name }}-${{ needs.buildWithLinux.outputs.targetPlatform }}
           path: build/${{ needs.buildWithLinux.outputs.targetPlatform }}
       - name: 查看替换前的内容
         run: |
@@ -466,7 +462,7 @@ jobs:
         uses: actions/upload-artifact@v2
         if: github.event.action == 'published' || contains(github.event.inputs.workflow_mode, 'release') || contains(github.event.inputs.workflow_mode, needs.buildWithLinux.outputs.targetPlatform)
         with:
-          name: ${{ github.event.inputs.product_short }}-${{ needs.buildWithLinux.outputs.targetPlatform }}
+          name: ${{ github.event.repository.name }}-${{ needs.buildWithLinux.outputs.targetPlatform }}
           path: build/${{ needs.buildWithLinux.outputs.targetPlatform }}
   
   releaseToGitHubPages:
@@ -482,7 +478,7 @@ jobs:
       - name: 下载WebGL构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ github.event.inputs.product_short }}-WebGL
+          name: ${{ github.event.repository.name }}-WebGL
           path: docs
       - name: 查看下载后的内容
         run: |
@@ -510,21 +506,22 @@ jobs:
       - name: 下载WebGL构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ github.event.inputs.product_short }}-WebGL
-      - name: 查看下载前的路径内容
+          name: ${{ github.event.repository.name }}-WebGL
+          path: tmp
+      - name: 移动并覆盖所有下载文件
+        run: |
+          mkdir ${{ github.event.repository.name }} -p
+          cp -rf tmp/WebGL/*  ${{ github.event.repository.name }}
+      - name: 查看下载后的内容
         run: |
           ls
           tree
-      - name: 查看下载后的路径内容
-        run: |
-          ls
-          tree
-      - name: 提交到个人站点
+      - name: 发布到个人站点
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           branch: gh-pages
-          file_pattern: WebGL/**
-          commit_message: 部署到个人站点
+          file_pattern: ${{ github.event.repository.name }}/**
+          commit_message: ${{ github.event.repository.name }}发布到个人站点  
   
   releaseToMicrosoftStore:
     name: 发行到MicrosoftStore🍻
@@ -542,7 +539,7 @@ jobs:
       - name: 下载WSAPlayer构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ github.event.inputs.product_short }}-WSAPlayer
+          name: ${{ github.event.repository.name }}-WSAPlayer
           path: build/WSAPlayer
       - name: 更新发行说明
         if: github.event.action == 'published'
@@ -660,17 +657,17 @@ jobs:
       - name: 下载StandaloneWindows构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ github.event.inputs.product_short }}-StandaloneWindows
+          name: ${{ github.event.repository.name }}-StandaloneWindows
           path: build/StandaloneWindows
       - name: 下载StandaloneLinux64构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ github.event.inputs.product_short }}-StandaloneLinux64
+          name: ${{ github.event.repository.name }}-StandaloneLinux64
           path: build/StandaloneLinux64
       - name: 下载StandaloneWindows64构建包
         uses: actions/download-artifact@v2
         with:
-          name: ${{ github.event.inputs.product_short }}-StandaloneWindows64
+          name: ${{ github.event.repository.name }}-StandaloneWindows64
           path: build/StandaloneWindows64
       - name: 下载App
         uses: actions/download-artifact@v2
@@ -728,7 +725,7 @@ jobs:
           VERSION: ${{ steps.versioning.outputs.version }}
           RELEASE_NOTES: ${{ github.event.release.body }}
         run: |
-          export ANNOUNCEMENT="${{ github.event.inputs.product_short }} $VERSION is out for release! $RELEASE_NOTES"
+          export ANNOUNCEMENT="${{ github.event.repository.name }} $VERSION is out for release! $RELEASE_NOTES"
           ANNOUNCEMENT="${ANNOUNCEMENT//'%'/'%25'}"
           ANNOUNCEMENT="${ANNOUNCEMENT//$'\n'/'%0A'}"
           ANNOUNCEMENT="${ANNOUNCEMENT//$'\r'/'%0D'}"
