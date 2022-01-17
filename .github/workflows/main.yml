@@ -487,12 +487,20 @@ jobs:
         run: |
           ls
           tree
+      # 目前较为流行部署到GitHubPages 的Action：
+      # 文档: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
       - name: 部署到GitHubPages
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          branch: main
-          file_pattern: docs/**
-          commit_message: 部署到GitHubPages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # 构建输出以发布到 `gh-pages` 分支：
+          publish_dir: ./docs
+          # 将提交作者身份分配给官方 GH-Actions 机器人以部署到 `gh-pages` 分支：
+          # https://github.com/actions/checkout/issues/13#issuecomment-724415212
+          # 如果您未指定这两个字段，则默认使用 GH 操作机器人。
+          # 您可以使用自己的用户凭据替换它们。
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
   
   releaseToSite:
     name: 同时发布到个人站点🍻
